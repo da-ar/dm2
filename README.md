@@ -3,7 +3,7 @@
 Can't decide? Give every option a fighter and let them settle it. DM2 has two game types:
 
 - **Pick a winner.** Two fighters brawl at a time, the winner stays on, and the last one standing is your decision.
-- **Who gets what.** List some people and some gifts (or chores, seats, prizes). People fight for each gift in turn and the results show who gets what.
+- **Prize Fights.** List some people and some gifts (or chores, seats, prizes). People fight for each gift in turn and the results show who gets what.
 
 DM2 is a static web game with no build step, no server and no dependencies. It runs in any modern browser on desktop or mobile.
 
@@ -14,11 +14,11 @@ DM2 is a static web game with no build step, no server and no dependencies. It r
 
 ## How it works
 
-1. **Enter your options** (2 to 20) and an optional question, or switch to **Who gets what** and list people (2 to 20) and gifts (1 to 20). Tap a fighter to choose who represents each option or person.
+1. **Enter your options** (2 to 20) and an optional question, or switch to **Prize Fights** and list people (2 to 20) and gifts (1 to 20). Tap a fighter to choose who represents each option or person.
 2. **Watch the death match.** Fights play at 1x, 2x or 4x, or skip straight to the result.
 3. **Share the code.** The results screen shows a match code like `DM2-AQ...`. Anyone who enters it under **I have a code** sees the same contenders, the same fights and the same winner. A link ending in `#DM2-...` opens the code directly.
 
-### Who gets what: prize fights
+### Prize Fights
 
 Gifts are fought for in the order you list them, one fight per gift. For each gift, two people who don't have a gift yet are drawn at random and fight; the winner takes the gift and stops waiting, the loser goes back into the pool. When only one person is waiting they take the gift on a walkover.
 
@@ -28,7 +28,7 @@ Gifts are fought for in the order you list them, one fight per gift. For each gi
 
 ### Codes without a server
 
-The code is the whole match: a version byte (1 = pick a winner, 2 = who gets what), a 32-bit random seed, the question, each option's text and fighter, the gifts (who-gets-what only), and a checksum, encoded as URL-safe base64. Every fight (order, arenas, hits, misses, specials) comes from a seeded PRNG (mulberry32) using integer maths only, so the same code plays out identically in every browser. Nothing is stored anywhere.
+The code is the whole match: a version byte (1 = pick a winner, 2 = Prize Fights), a 32-bit random seed, the question, each option's text and fighter, the gifts (Prize Fights only), and a checksum, encoded as URL-safe base64. Every fight (order, arenas, hits, misses, specials) comes from a seeded PRNG (mulberry32) using integer maths only, so the same code plays out identically in every browser. Nothing is stored anywhere.
 
 ### It's fair
 

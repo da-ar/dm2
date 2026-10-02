@@ -107,7 +107,7 @@ test('every roster fighter has a valid sprite', () => {
   });
 });
 
-/* ---------- who gets what ---------- */
+/* ---------- Prize Fights ---------- */
 const people = ['Amy', 'Ben', 'Cal', 'Dee'].map((label, i) => ({ fighter: i + 4, label }));
 const shareSample = { mode: 'share', seed: 99, question: 'Secret Santa', options: people, gifts: ['Lego set', 'Scarf 🧣', 'Mug', 'Socks'] };
 
@@ -120,7 +120,7 @@ test('version 1 codes still decode as pick-a-winner matches', () => {
   assert.strictEqual(E.simulate(m).mode, 'decide');
 });
 
-test('a who-gets-what code round-trips people and gifts', () => {
+test('a Prize Fights code round-trips people and gifts', () => {
   const code = E.encodeMatch(shareSample);
   assert.match(code, /^DM2-[A-Za-z0-9_-]+$/);
   assert.deepStrictEqual(E.decodeMatch(code, FIGHTERS.length), shareSample);

@@ -914,7 +914,7 @@
     await this.wait(250);
   };
 
-  /* ---------- prize fights (who gets what) ---------- */
+  /* ---------- Prize Fights ---------- */
   var PRIZE_COLORS = ['#e83838', '#3a78f0', '#3cc84a', '#a64ae8', '#ff9a2a', '#ff5aa8'];
 
   Arena.prototype.setPrize = function (prize) {

@@ -108,7 +108,7 @@
     var share = state.mode === 'share';
     $('mode-decide').setAttribute('aria-pressed', String(!share));
     $('mode-share').setAttribute('aria-pressed', String(share));
-    $('setup-title').textContent = share ? 'Who gets what?' : 'Choose your contenders';
+    $('setup-title').textContent = share ? 'Prize Fights' : 'Choose your contenders';
     $('contenders-label').textContent = share ? 'People' : 'Contenders';
     $('question').placeholder = share ? 'Secret Santa: who gets which present?' : 'Where should we eat tonight?';
     $('gifts-panel').hidden = !share;
@@ -401,7 +401,7 @@
     }
   };
 
-  /* ---------- who gets what: HUD and tallies ---------- */
+  /* ---------- Prize Fights: HUD and tallies ---------- */
   function giftName(i) { return state.match.gifts[i]; }
 
   function renderGiftTable() {

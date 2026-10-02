@@ -4,7 +4,7 @@
 (function (root) {
   'use strict';
 
-  var CODE_VERSION = 2; // newest code format this build writes (1 = pick a winner, 2 = who gets what)
+  var CODE_VERSION = 2; // newest code format this build writes (1 = pick a winner, 2 = Prize Fights)
   var CODE_PREFIX = 'DM2-';
   var MAX_OPTIONS = 20;
   var MAX_GIFTS = 20;
@@ -103,7 +103,7 @@
        next        question length (bytes), then question UTF-8
        next        option count, then per option: fighter index, label length, label UTF-8
        last byte   checksum
-     Version 2 (who gets what): as version 1, then after the people
+     Version 2 (Prize Fights): as version 1, then after the people
        next        gift count, then per gift: label length, label UTF-8
        last byte   checksum
      Version 1 codes must keep decoding and replaying exactly as they always have. */
@@ -232,7 +232,7 @@
     return { mode: 'decide', order: order, fights: fights, winner: champion };
   }
 
-  /* ---------- who gets what: prize fights ----------
+  /* ---------- Prize Fights ----------
      Gifts are fought for in the order they were listed. For each gift, two people
      who are still waiting are drawn at random and fight; the winner takes the gift
      and stops waiting. Drawing a uniform random pair and then a 50/50 fight gives

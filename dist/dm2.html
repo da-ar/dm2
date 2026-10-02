@@ -311,7 +311,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
 .queue li.got { box-shadow: 0 0 0 2px var(--lime), 3px 3px 0 2px var(--shadow); }
 .hud-side.empty { visibility: hidden; }
 
-/* ---------- who gets what results ---------- */
+/* ---------- Prize Fights results ---------- */
 .share-list { list-style: none; margin: 8px 0 0; padding: 0; width: 100%; max-width: 720px; display: flex; flex-direction: column; gap: 12px; text-align: left; }
 .share-list li {
   display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; background: var(--panel); padding: 10px 14px; min-width: 0;
@@ -433,14 +433,14 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     <p class="tagline">Can't decide? Give every option a fighter. Winner stays on. The last one standing is your decision.</p>
     <div class="actions">
       <button class="btn btn-hot btn-big" id="btn-new" type="button">Pick a winner</button>
-      <button class="btn btn-hot btn-big btn-alt" id="btn-share" type="button">Who gets what</button>
+      <button class="btn btn-hot btn-big btn-alt" id="btn-share" type="button">Prize Fights</button>
     </div>
     <div class="actions">
       <button class="btn" id="btn-have-code" type="button">I have a code</button>
     </div>
     <ol class="how">
       <li><b>Enter your options</b>, or a list of people and the gifts they're fighting over. Every option gets a fighter.</li>
-      <li><b>Watch them brawl.</b> Winner stays on, or in Who gets what, two people fight for each gift.</li>
+      <li><b>Watch them brawl.</b> Winner stays on, or in Prize Fights, two people fight for each gift.</li>
       <li><b>Share the code.</b> Anyone can replay the same fights and the same result.</li>
     </ol>
   </section>
@@ -450,7 +450,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     <h2 class="screen-title" id="setup-title">Choose your contenders</h2>
     <div class="mode-switch" role="group" aria-label="Game type">
       <button class="mode-btn" id="mode-decide" data-mode="decide" type="button" aria-pressed="true"><b>Pick a winner</b><span>Options fight. One is left standing.</span></button>
-      <button class="mode-btn" id="mode-share" data-mode="share" type="button" aria-pressed="false"><b>Who gets what</b><span>People fight for each gift in turn.</span></button>
+      <button class="mode-btn" id="mode-share" data-mode="share" type="button" aria-pressed="false"><b>Prize Fights</b><span>People fight for each gift in turn.</span></button>
     </div>
     <div class="panel">
       <label class="field-label" for="question">What are we deciding? <span class="opt">(optional)</span></label>
@@ -563,7 +563,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
   <section class="screen" id="screen-result" data-screen="result" hidden>
     <div class="result-hero" id="share-hero" hidden>
       <p class="result-question" id="share-q"></p>
-      <p class="eyebrow">Who gets what</p>
+      <p class="eyebrow">Prize Fights results</p>
       <ol class="share-list" id="share-list"></ol>
       <p class="winner-sub" id="share-sub"></p>
     </div>
@@ -1481,7 +1481,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
 (function (root) {
   'use strict';
 
-  var CODE_VERSION = 2; // newest code format this build writes (1 = pick a winner, 2 = who gets what)
+  var CODE_VERSION = 2; // newest code format this build writes (1 = pick a winner, 2 = Prize Fights)
   var CODE_PREFIX = 'DM2-';
   var MAX_OPTIONS = 20;
   var MAX_GIFTS = 20;
@@ -1580,7 +1580,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
        next        question length (bytes), then question UTF-8
        next        option count, then per option: fighter index, label length, label UTF-8
        last byte   checksum
-     Version 2 (who gets what): as version 1, then after the people
+     Version 2 (Prize Fights): as version 1, then after the people
        next        gift count, then per gift: label length, label UTF-8
        last byte   checksum
      Version 1 codes must keep decoding and replaying exactly as they always have. */
@@ -1709,7 +1709,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     return { mode: 'decide', order: order, fights: fights, winner: champion };
   }
 
-  /* ---------- who gets what: prize fights ----------
+  /* ---------- Prize Fights ----------
      Gifts are fought for in the order they were listed. For each gift, two people
      who are still waiting are drawn at random and fight; the winner takes the gift
      and stops waiting. Drawing a uniform random pair and then a 50/50 fight gives
@@ -2874,7 +2874,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     await this.wait(250);
   };
 
-  /* ---------- prize fights (who gets what) ---------- */
+  /* ---------- Prize Fights ---------- */
   var PRIZE_COLORS = ['#e83838', '#3a78f0', '#3cc84a', '#a64ae8', '#ff9a2a', '#ff5aa8'];
 
   Arena.prototype.setPrize = function (prize) {
@@ -3075,7 +3075,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     var share = state.mode === 'share';
     $('mode-decide').setAttribute('aria-pressed', String(!share));
     $('mode-share').setAttribute('aria-pressed', String(share));
-    $('setup-title').textContent = share ? 'Who gets what?' : 'Choose your contenders';
+    $('setup-title').textContent = share ? 'Prize Fights' : 'Choose your contenders';
     $('contenders-label').textContent = share ? 'People' : 'Contenders';
     $('question').placeholder = share ? 'Secret Santa: who gets which present?' : 'Where should we eat tonight?';
     $('gifts-panel').hidden = !share;
@@ -3368,7 +3368,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     }
   };
 
-  /* ---------- who gets what: HUD and tallies ---------- */
+  /* ---------- Prize Fights: HUD and tallies ---------- */
   function giftName(i) { return state.match.gifts[i]; }
 
   function renderGiftTable() {
