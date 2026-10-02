@@ -18,6 +18,12 @@ DM2 is a static web game with no build step, no server and no dependencies. It r
 2. **Watch the death match.** Fights play at 1x, 2x or 4x, or skip straight to the result.
 3. **Share the code.** The results screen shows a match code like `DM2-AQ...`. Anyone who enters it under **I have a code** sees the same contenders, the same fights and the same winner. A link ending in `#DM2-...` opens the code directly.
 
+### Share links
+
+On a hosted copy (GitHub Pages or any web server) the fight and results screens put the code in the address bar, so the browser's own share button works. The results screen also has **Copy share link** and, on devices that support it, a **Share** button. A local `dm2.html` file has no address other people can open, so it offers the code only.
+
+If the game is shown inside another site's frame, it can't see the address people actually use. Build it with that address baked in: `node tools/build.js --share-base https://example.com/dm2/`.
+
 ### Prize Fights
 
 Gifts are fought for in the order you list them, one fight per gift. For each gift, two people who don't have a gift yet are drawn at random and fight; the winner takes the gift and stops waiting, the loser goes back into the pool. When only one person is waiting they take the gift on a walkover.

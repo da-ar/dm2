@@ -94,7 +94,7 @@
     <div class="panel">
       <label class="field-label" for="code-input">Match code</label>
       <textarea class="field code-field" id="code-input" rows="3" placeholder="DM2-AQ..." spellcheck="false" autocomplete="off"></textarea>
-      <p class="hint">Paste a code from someone's results screen. A full share link works too.</p>
+      <p class="hint">Paste the code from someone's results screen. If they sent you a DM2 share link, you can paste that here too, or just open it.</p>
       <p class="error" id="code-error" role="alert" hidden></p>
       <div class="actions left">
         <button class="btn" id="btn-load-code" type="button">Load code</button>
@@ -186,6 +186,7 @@
       <div class="actions left">
         <button class="btn btn-hot" id="btn-copy-code" type="button">Copy code</button>
         <button class="btn" id="btn-copy-link" type="button">Copy share link</button>
+        <button class="btn" id="btn-native-share" type="button" hidden>Share</button>
       </div>
       <p class="toast" id="copy-toast" role="status"></p>
     </div>
