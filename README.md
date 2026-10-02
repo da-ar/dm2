@@ -1,6 +1,9 @@
 # DM2: Death Match Decision Maker
 
-Can't decide? Give every option a fighter and let them settle it. Two fighters brawl at a time, the winner stays on, and the last one standing is your decision.
+Can't decide? Give every option a fighter and let them settle it. DM2 has two game types:
+
+- **Pick a winner.** Two fighters brawl at a time, the winner stays on, and the last one standing is your decision.
+- **Who gets what.** List some people and some gifts (or chores, seats, prizes). People fight for each gift in turn and the results show who gets what.
 
 DM2 is a static web game with no build step, no server and no dependencies. It runs in any modern browser on desktop or mobile.
 
@@ -11,17 +14,25 @@ DM2 is a static web game with no build step, no server and no dependencies. It r
 
 ## How it works
 
-1. **Enter your options** (2 to 20) and an optional question. Tap a fighter to choose who represents each option.
+1. **Enter your options** (2 to 20) and an optional question, or switch to **Who gets what** and list people (2 to 20) and gifts (1 to 20). Tap a fighter to choose who represents each option or person.
 2. **Watch the death match.** Fights play at 1x, 2x or 4x, or skip straight to the result.
 3. **Share the code.** The results screen shows a match code like `DM2-AQ...`. Anyone who enters it under **I have a code** sees the same contenders, the same fights and the same winner. A link ending in `#DM2-...` opens the code directly.
 
+### Who gets what: prize fights
+
+Gifts are fought for in the order you list them, one fight per gift. For each gift, two people who don't have a gift yet are drawn at random and fight; the winner takes the gift and stops waiting, the loser goes back into the pool. When only one person is waiting they take the gift on a walkover.
+
+- **More people than gifts:** whoever is still waiting when the gifts run out gets nothing, and the results say so.
+- **More gifts than people:** once everyone has a gift, everyone waits again, so nobody gets a second gift before everyone has one. Gift counts never differ by more than one.
+- **Fairness:** a uniformly random pair plus a 50/50 fight gives every waiting person exactly a 1-in-*k* chance at each gift. The tests check this over 40,000 matches.
+
 ### Codes without a server
 
-The code is the whole match: a version byte, a 32-bit random seed, the question, each option's text and fighter, and a checksum, encoded as URL-safe base64. Every fight (order, arenas, hits, misses, specials) comes from a seeded PRNG (mulberry32) using integer maths only, so the same code plays out identically in every browser. Nothing is stored anywhere.
+The code is the whole match: a version byte (1 = pick a winner, 2 = who gets what), a 32-bit random seed, the question, each option's text and fighter, the gifts (who-gets-what only), and a checksum, encoded as URL-safe base64. Every fight (order, arenas, hits, misses, specials) comes from a seeded PRNG (mulberry32) using integer maths only, so the same code plays out identically in every browser. Nothing is stored anywhere.
 
 ### It's fair
 
-Winner-stays-on normally favours late entrants. DM2 decides each fight with the reservoir-sampling rule: the challenger in fight *i* wins with probability 1/(i+1). That gives every option exactly a 1-in-*n* chance of being the decision, whatever its place in the queue. The fight is then scripted to reach that result. `tests/engine.test.js` checks this over 50,000 simulated matches.
+In **Pick a winner**, winner-stays-on would normally favour late entrants. DM2 decides each fight with the reservoir-sampling rule: the challenger in fight *i* wins with probability 1/(i+1). That gives every option exactly a 1-in-*n* chance of being the decision, whatever its place in the queue. The fight is then scripted to reach that result. `tests/engine.test.js` checks this over 50,000 simulated matches.
 
 ## The fighters
 
@@ -32,7 +43,7 @@ Twenty parody legends drawn as 24x32 pixel art in `js/sprites.js`: The Lych King
 | Path | What it does |
 | --- | --- |
 | `index.html`, `css/style.css` | Page structure and the arcade-cabinet styling |
-| `js/engine.js` | Seeded RNG, match codes, tournament simulation (pure, also runs in Node) |
+| `js/engine.js` | Seeded RNG, match codes, both simulations (pure, also runs in Node) |
 | `js/roster.js` | Fighter names, special moves and attack styles |
 | `js/sprites.js` | Pixel art for every fighter |
 | `js/arena.js` | Canvas renderer: six procedural arenas, effects and the fight director |
@@ -48,4 +59,4 @@ npm run build   # rebuild dist/dm2.html after changing anything
 npm start       # serve locally on http://localhost:8080
 ```
 
-**Keep old codes working.** Fighter indexes are stored in codes, so only ever append to `FIGHTERS` in `js/roster.js`. Any change to `simulate()` or `scriptFight()` changes what old codes replay; a fingerprint test fails if that happens. Bump `CODE_VERSION` and keep the old logic for old codes if you need to change it.
+**Keep old codes working.** Fighter indexes are stored in codes, so only ever append to `FIGHTERS` in `js/roster.js`. Any change to `simulate()`, `simulateShare()` or `scriptFight()` changes what old codes replay; a fingerprint test fails if that happens. Bump `CODE_VERSION` and keep the old logic for old codes if you need to change it.

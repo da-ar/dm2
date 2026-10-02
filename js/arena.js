@@ -407,6 +407,7 @@
     this.camX = 0;
     this.fade = 0; // 0 = clear, 16 = black
     this.parade = null;
+    this.prize = null;
     this.hooks = {};
     this.token = 0;
     this.running = false;
@@ -475,7 +476,7 @@
     this.abort();
     this.fighters = [null, null];
     this.particles = []; this.texts = []; this.projectiles = [];
-    this.flash = null; this.shake = 0; this.fade = 0; this.parade = null;
+    this.flash = null; this.shake = 0; this.fade = 0; this.parade = null; this.prize = null;
   };
 
   Arena.prototype._frame = function (now) {
@@ -569,6 +570,7 @@
     order.forEach(function (i) { var f = self.fighters[i]; if (f && f.visible) self._drawShadow(ctx, f.x - cam, f.y); });
     order.forEach(function (i) { var f = self.fighters[i]; if (f && f.visible) self._drawFighter(ctx, f, cam); });
 
+    if (this.prize) this._drawPrize(ctx, cam);
     this.projectiles.forEach(function (pr) { self._drawProjectile(ctx, pr, cam); });
     this.particles.forEach(function (p) {
       ctx.globalAlpha = Math.max(0, Math.min(1, p.life / (p.max || 1) * 1.5));
@@ -731,12 +733,14 @@
 
     return (async function () {
       // set the scene
-      if (c.first) {
+      if (c.first || c.fresh) { // a brand new pair walks in (always the case in prize fights)
         self.parade = null;
-        self.fade = 16;
+        if (c.first) self.fade = 16;
+        else { await self.tween(self, { fade: 16 }, 300, 'linear'); check(); }
         self.setStage(fight.stage);
         F[0] = self.makeFighter(c.ids[0], 0);
         F[1] = self.makeFighter(c.ids[1], 1);
+        self.setPrize(c.prize);
         hooks.matchup && hooks.matchup(c);
         await self.tween(self, { fade: 0 }, 350, 'linear');
         sfx('step');
@@ -754,9 +758,9 @@
       }
       check();
       hooks.stageName && hooks.stageName(STAGES[fight.stage].name);
-      hooks.banner && hooks.banner(c.final ? 'FINAL ROUND' : 'ROUND ' + fight.round, 'round', 900);
+      hooks.banner && hooks.banner(c.intro || (c.final ? 'FINAL ROUND' : 'ROUND ' + fight.round), 'round', c.intro ? 1300 : 900);
       sfx('round');
-      await self.wait(1000);
+      await self.wait(c.intro ? 1400 : 1000);
       hooks.banner && hooks.banner('FIGHT!', 'fight', 650);
       sfx('fight');
       await self.wait(650);
@@ -877,6 +881,13 @@
     }
     winner.idle = true;
 
+    if (c.prize) {
+      await this.awardPrize(winner, sfx);
+      if (c.final) { this.confetti(120); sfx('victory'); }
+      await this.wait(c.final ? 1200 : 700);
+      return;
+    }
+
     if (c.final) {
       winner.crown = true;
       this.confetti(120);
@@ -901,6 +912,90 @@
       F[1] = null;
     }
     await this.wait(250);
+  };
+
+  /* ---------- prize fights (who gets what) ---------- */
+  var PRIZE_COLORS = ['#e83838', '#3a78f0', '#3cc84a', '#a64ae8', '#ff9a2a', '#ff5aa8'];
+
+  Arena.prototype.setPrize = function (prize) {
+    this.prize = prize ? { x: 160, y: 36, color: PRIZE_COLORS[prize.index % PRIZE_COLORS.length], held: null } : null;
+  };
+
+  Arena.prototype.awardPrize = async function (winner, sfx) {
+    var pr = this.prize;
+    if (!pr) return;
+    sfx('heal');
+    await this.tween(pr, { x: winner.x, y: FEET_Y - 82 }, 450, 'inout');
+    pr.held = winner;
+    this.burst(winner.x, FEET_Y - 82, '#ffe14a', 22, 90);
+    this.burst(winner.x, FEET_Y - 82, pr.color, 12, 70);
+    for (var h = 0; h < 2; h++) {
+      sfx('jump');
+      await this.tween(winner, { y: -14 }, 150, 'out');
+      await this.tween(winner, { y: 0 }, 150, 'in');
+    }
+  };
+
+  /* The last person waiting takes a gift without a fight. c: { round, id, meta, label, prize, first, final, intro } */
+  Arena.prototype.playWalkover = function (c) {
+    var self = this, token = this.token, hooks = this.hooks, F = this.fighters;
+    var sfx = function (n) { if (token === self.token && hooks.sfx) hooks.sfx(n); };
+    function check() { if (token !== self.token) throw new Aborted(); }
+    return (async function () {
+      self.parade = null;
+      if (c.first) self.fade = 16;
+      else { await self.tween(self, { fade: 16 }, 300, 'linear'); check(); }
+      self.setStage(c.round.stage);
+      F[0] = self.makeFighter(c.id, 0);
+      F[1] = null;
+      self.setPrize(c.prize);
+      hooks.matchup && hooks.matchup(c);
+      await self.tween(self, { fade: 0 }, 300, 'linear');
+      hooks.stageName && hooks.stageName(STAGES[c.round.stage].name);
+      sfx('step');
+      await self.tween(F[0], { x: 160 }, 900, 'out');
+      check();
+      hooks.banner && hooks.banner(c.intro, 'round', 1300);
+      sfx('round');
+      await self.wait(1400);
+      hooks.banner && hooks.banner('WALKOVER!', 'fight', 900);
+      sfx('fight');
+      await self.wait(700);
+      hooks.koDone && hooks.koDone(c);
+      await self.awardPrize(F[0], sfx);
+      if (c.final) { self.confetti(120); sfx('victory'); }
+      await self.wait(c.final ? 1200 : 700);
+    })();
+  };
+
+  function drawPresent(ctx, x, y, color, t) {
+    x = Math.round(x); y = Math.round(y);
+    var ink = '#140c1c', ribbon = '#ffe14a';
+    ctx.fillStyle = ink;
+    ctx.fillRect(x - 7, y - 4, 14, 14); ctx.fillRect(x - 5, y - 8, 4, 4); ctx.fillRect(x + 1, y - 8, 4, 4);
+    ctx.fillStyle = color;
+    ctx.fillRect(x - 6, y - 3, 12, 3); ctx.fillRect(x - 5, y + 1, 10, 8);
+    ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(x + 2, y + 1, 3, 8);
+    ctx.fillStyle = ribbon;
+    ctx.fillRect(x - 1, y - 3, 2, 12); ctx.fillRect(x - 4, y - 7, 2, 2); ctx.fillRect(x + 2, y - 7, 2, 2);
+    ctx.fillRect(x - 2, y - 5, 4, 1);
+    if (Math.floor(t / 180) % 3 === 0) { ctx.fillStyle = '#ffffff'; ctx.fillRect(x - 4, y - 2, 1, 1); }
+  }
+
+  Arena.prototype._drawPrize = function (ctx, cam) {
+    var pr = this.prize, t = this.time;
+    if (pr.held) {
+      if (!pr.held.visible) return;
+      pr.x = pr.held.x; pr.y = FEET_Y - 82 + pr.held.y;
+    }
+    var bob = pr.held ? 0 : Math.round(Math.sin(t / 260) * 3);
+    if (!pr.held && Math.floor(t / 120) % 4 === 0) { // sparkle around the prize while it is up for grabs
+      var a = (t / 300) % (Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(Math.round(pr.x - cam + Math.cos(a) * 14), Math.round(pr.y + bob + Math.sin(a) * 10), 1, 1);
+      ctx.fillRect(Math.round(pr.x - cam - Math.cos(a) * 14), Math.round(pr.y + bob - Math.sin(a) * 10), 1, 1);
+    }
+    drawPresent(ctx, pr.x - cam, pr.y + bob, pr.color, t);
   };
 
   Arena.Aborted = Aborted;

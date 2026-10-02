@@ -276,6 +276,54 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
 .remove:disabled { opacity: 0.3; cursor: not-allowed; }
 .row-actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 4px; }
 
+/* ---------- game type switch ---------- */
+.mode-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 4px 8px; }
+.mode-btn {
+  cursor: pointer; border: 0; background: var(--panel); text-align: left; padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 6px; min-width: 0;
+  box-shadow: 0 0 0 3px var(--line), 4px 4px 0 3px var(--shadow);
+}
+.mode-btn b { font-family: var(--font-display); font-weight: normal; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; line-height: 1.4; }
+.mode-btn span { color: var(--muted); font-size: 19px; line-height: 1.1; }
+.mode-btn[aria-pressed="true"] { background: var(--panel-2); box-shadow: 0 0 0 3px var(--gold), 4px 4px 0 3px var(--shadow); }
+.mode-btn[aria-pressed="true"] b { color: var(--gold); }
+.mode-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 5px; }
+.btn-alt { --face: #2a8ad8; text-shadow: 2px 2px 0 #123a6a; }
+.btn-alt:hover { --face: #3a9ae8; }
+
+/* ---------- gifts ---------- */
+.gifts { margin: 0; padding: 0 0 0 1.8em; display: flex; flex-direction: column; gap: 10px; }
+.gifts li { padding-left: 4px; }
+.gifts li::marker { font-family: var(--font-display); font-size: 11px; color: var(--muted); }
+.gift-row { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; min-width: 0; }
+.gift-row .field { min-width: 0; }
+.prize-line { margin: 0; text-align: center; font-size: 24px; text-wrap: balance; }
+.prize-line b { font-weight: normal; color: var(--gold); }
+.gift-table { margin: 0; padding: 0 0 0 1.8em; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 6px 20px; font-size: 20px; }
+.gift-table li { color: var(--muted); min-width: 0; overflow-wrap: anywhere; }
+.gift-table li b { font-weight: normal; color: var(--ink); }
+.gift-table li.current { color: var(--gold); }
+.gift-table li.current b { color: var(--gold); }
+.gift-table li.won { color: var(--lime); }
+.queue li .badge {
+  font-family: var(--font-display); font-size: 9px; background: var(--lime); color: var(--shadow); padding: 3px 4px; flex: none;
+}
+.queue li.got { box-shadow: 0 0 0 2px var(--lime), 3px 3px 0 2px var(--shadow); }
+.hud-side.empty { visibility: hidden; }
+
+/* ---------- who gets what results ---------- */
+.share-list { list-style: none; margin: 8px 0 0; padding: 0; width: 100%; max-width: 720px; display: flex; flex-direction: column; gap: 12px; text-align: left; }
+.share-list li {
+  display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; background: var(--panel); padding: 10px 14px; min-width: 0;
+  box-shadow: 0 0 0 3px var(--line), 5px 5px 0 3px var(--shadow); margin: 0 8px;
+}
+.share-gift { font-family: var(--font-display); font-size: clamp(11px, 2.6vw, 15px); color: var(--gold); line-height: 1.5; overflow-wrap: anywhere; min-width: 0; }
+.share-who { display: flex; align-items: center; gap: 10px; min-width: 0; justify-content: flex-end; text-align: right; }
+.share-who canvas { width: 40px; height: 32px; flex: none; }
+.share-who span { font-size: 24px; line-height: 1; overflow-wrap: anywhere; }
+.share-who small { display: block; color: var(--muted); font-size: 17px; }
+.share-list li.nothing .share-gift { color: var(--muted); }
+
 /* ---------- code preview ---------- */
 .preview-q { margin: 0 0 8px; font-size: 26px; }
 .preview-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
@@ -283,6 +331,8 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
 .preview-list canvas { width: 40px; height: 32px; flex: none; background: var(--bg); }
 .preview-list span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .preview-list small { display: block; color: var(--muted); font-size: 17px; }
+#preview-gifts-wrap { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.preview-gifts { margin: 0; padding-left: 1.8em; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 4px 20px; }
 
 /* ---------- result ---------- */
 .result-hero { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; padding-top: 8px; }
@@ -348,6 +398,9 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
   .hud-face { width: 30px; height: 24px; }
   .hud-char { font-size: 15px; }
   .panel { padding: 12px; }
+  .mode-switch { grid-template-columns: 1fr; }
+  .share-list li { grid-template-columns: 1fr; gap: 8px; }
+  .share-who { justify-content: flex-start; text-align: left; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -379,35 +432,53 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     <div class="stage-frame" id="title-frame"></div>
     <p class="tagline">Can't decide? Give every option a fighter. Winner stays on. The last one standing is your decision.</p>
     <div class="actions">
-      <button class="btn btn-hot btn-big" id="btn-new" type="button">New death match</button>
+      <button class="btn btn-hot btn-big" id="btn-new" type="button">Pick a winner</button>
+      <button class="btn btn-hot btn-big btn-alt" id="btn-share" type="button">Who gets what</button>
+    </div>
+    <div class="actions">
       <button class="btn" id="btn-have-code" type="button">I have a code</button>
     </div>
     <ol class="how">
-      <li><b>Enter your options</b> and pick a fighter for each, or let fate assign them.</li>
-      <li><b>Watch them brawl.</b> Two fight at a time and the winner stays on.</li>
+      <li><b>Enter your options</b>, or a list of people and the gifts they're fighting over. Every option gets a fighter.</li>
+      <li><b>Watch them brawl.</b> Winner stays on, or in Who gets what, two people fight for each gift.</li>
       <li><b>Share the code.</b> Anyone can replay the same fights and the same result.</li>
     </ol>
   </section>
 
   <!-- SETUP -->
   <section class="screen" id="screen-setup" data-screen="setup" hidden>
-    <h2 class="screen-title">Choose your contenders</h2>
+    <h2 class="screen-title" id="setup-title">Choose your contenders</h2>
+    <div class="mode-switch" role="group" aria-label="Game type">
+      <button class="mode-btn" id="mode-decide" data-mode="decide" type="button" aria-pressed="true"><b>Pick a winner</b><span>Options fight. One is left standing.</span></button>
+      <button class="mode-btn" id="mode-share" data-mode="share" type="button" aria-pressed="false"><b>Who gets what</b><span>People fight for each gift in turn.</span></button>
+    </div>
     <div class="panel">
       <label class="field-label" for="question">What are we deciding? <span class="opt">(optional)</span></label>
       <input class="field" id="question" type="text" maxlength="60" placeholder="Where should we eat tonight?" autocomplete="off">
     </div>
     <div class="panel">
       <div class="list-head">
-        <span class="field-label">Contenders</span>
+        <span class="field-label" id="contenders-label">Contenders</span>
         <span class="count" id="count">0 / 20</span>
       </div>
-      <p class="hint" id="example-note">These are example options. Type over them or <button class="linkbtn" id="btn-clear" type="button">clear them all</button>.</p>
+      <p class="hint" id="example-note">These are examples. Type over them or <button class="linkbtn" id="btn-clear" type="button">clear them all</button>.</p>
       <ol class="contenders" id="contenders"></ol>
       <div class="row-actions">
         <button class="btn btn-small" id="btn-add" type="button">+ Add contender</button>
         <button class="btn btn-small" id="btn-shuffle" type="button">Shuffle fighters</button>
       </div>
-      <p class="hint">Tap a fighter to choose who represents that option.</p>
+      <p class="hint" id="fighter-hint">Tap a fighter to choose who represents that option.</p>
+    </div>
+    <div class="panel" id="gifts-panel" hidden>
+      <div class="list-head">
+        <span class="field-label">Gifts</span>
+        <span class="count" id="gift-count">0 / 20</span>
+      </div>
+      <ol class="gifts" id="gifts"></ol>
+      <div class="row-actions">
+        <button class="btn btn-small" id="btn-add-gift" type="button">+ Add gift</button>
+      </div>
+      <p class="hint">Gifts are fought for in this order, one fight each. Two people who don't have a gift yet are drawn at random to fight for it. If there are more gifts than people, nobody gets a second gift until everyone has one.</p>
     </div>
     <p class="error" id="setup-error" role="alert" hidden></p>
     <div class="actions">
@@ -430,8 +501,12 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     <div class="panel" id="code-preview" hidden>
       <span class="field-label">The question</span>
       <p class="preview-q" id="preview-q"></p>
-      <span class="field-label">Contenders</span>
+      <span class="field-label" id="preview-people-label">Contenders</span>
       <ul class="preview-list" id="preview-list"></ul>
+      <div id="preview-gifts-wrap" hidden>
+        <span class="field-label">Gifts, in fight order</span>
+        <ol class="preview-gifts" id="preview-gifts"></ol>
+      </div>
       <div class="actions">
         <button class="btn btn-hot btn-big" id="btn-watch-code" type="button">Watch the fights</button>
       </div>
@@ -441,6 +516,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
   <!-- FIGHT -->
   <section class="screen" id="screen-fight" data-screen="fight" hidden>
     <p class="fight-q" id="fight-q"></p>
+    <p class="prize-line" id="prize-line" hidden></p>
     <div class="hud">
       <div class="hud-side" id="hud-0">
         <canvas class="hud-face" width="40" height="32"></canvas>
@@ -474,14 +550,24 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
       <button class="btn btn-small" id="btn-skip" type="button">Skip to result</button>
     </div>
     <div class="queue-wrap">
-      <span class="field-label">Fight order</span>
+      <span class="field-label" id="queue-label">Fight order</span>
       <ol class="queue" id="queue"></ol>
+    </div>
+    <div class="panel" id="gift-wrap" hidden>
+      <span class="field-label">Gifts</span>
+      <ol class="gift-table" id="gift-table"></ol>
     </div>
   </section>
 
   <!-- RESULT -->
   <section class="screen" id="screen-result" data-screen="result" hidden>
-    <div class="result-hero">
+    <div class="result-hero" id="share-hero" hidden>
+      <p class="result-question" id="share-q"></p>
+      <p class="eyebrow">Who gets what</p>
+      <ol class="share-list" id="share-list"></ol>
+      <p class="winner-sub" id="share-sub"></p>
+    </div>
+    <div class="result-hero" id="decide-hero">
       <p class="result-question" id="result-q"></p>
       <p class="eyebrow">The decision is</p>
       <div class="winner-stage">
@@ -493,7 +579,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     </div>
     <div class="panel code-panel">
       <span class="field-label">Your match code</span>
-      <p class="hint">Anyone who enters this code sees the same contenders, the same fights and the same winner.</p>
+      <p class="hint" id="code-hint">Anyone who enters this code sees the same contenders, the same fights and the same winner.</p>
       <output class="code-box" id="code-box"></output>
       <div class="actions left">
         <button class="btn btn-hot" id="btn-copy-code" type="button">Copy code</button>
@@ -1395,9 +1481,10 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
 (function (root) {
   'use strict';
 
-  var CODE_VERSION = 1;
+  var CODE_VERSION = 2; // newest code format this build writes (1 = pick a winner, 2 = who gets what)
   var CODE_PREFIX = 'DM2-';
   var MAX_OPTIONS = 20;
+  var MAX_GIFTS = 20;
   var MAX_LABEL = 32;     // characters
   var MAX_QUESTION = 60;  // characters
   var MAX_HP = 100;
@@ -1487,23 +1574,40 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
   }
 
   /* ---------- match codes ----------
-     byte 0      version
-     bytes 1-4   seed (uint32, big endian)
-     byte 5      question length (bytes), then question UTF-8
-     next byte   option count, then per option: fighter index, label length, label UTF-8
-     last byte   checksum                                                        */
+     Version 1 (pick a winner):
+       byte 0      1
+       bytes 1-4   seed (uint32, big endian)
+       next        question length (bytes), then question UTF-8
+       next        option count, then per option: fighter index, label length, label UTF-8
+       last byte   checksum
+     Version 2 (who gets what): as version 1, then after the people
+       next        gift count, then per gift: label length, label UTF-8
+       last byte   checksum
+     Version 1 codes must keep decoding and replaying exactly as they always have. */
+  var MODE_VERSION = { decide: 1, share: 2 };
+
+  function pushLabel(bytes, text) {
+    var l = utf8Encode(clip(text, MAX_LABEL));
+    bytes.push(l.length);
+    for (var i = 0; i < l.length; i++) bytes.push(l[i]);
+  }
+
   function encodeMatch(match) {
-    var bytes = [CODE_VERSION];
+    var mode = match.mode === 'share' ? 'share' : 'decide';
+    var bytes = [MODE_VERSION[mode]];
     var seed = match.seed >>> 0;
     bytes.push((seed >>> 24) & 255, (seed >>> 16) & 255, (seed >>> 8) & 255, seed & 255);
     var q = utf8Encode(clip(match.question, MAX_QUESTION));
     bytes.push(q.length); bytes = bytes.concat(q);
     bytes.push(match.options.length);
     match.options.forEach(function (o) {
-      var l = utf8Encode(clip(o.label, MAX_LABEL));
-      bytes.push(o.fighter & 255, l.length);
-      bytes = bytes.concat(l);
+      bytes.push(o.fighter & 255);
+      pushLabel(bytes, o.label);
     });
+    if (mode === 'share') {
+      bytes.push(match.gifts.length);
+      match.gifts.forEach(function (g) { pushLabel(bytes, g); });
+    }
     bytes.push(checksum(bytes));
     return CODE_PREFIX + b64Encode(bytes);
   }
@@ -1526,8 +1630,16 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     if (bytes.length < 8) throw new Error('That code is too short. Make sure you copied all of it.');
     var sum = bytes.pop();
     if (checksum(bytes) !== sum) throw new Error('That code is damaged or incomplete. Copy it again from the results screen.');
-    if (bytes[0] !== CODE_VERSION) throw new Error('That code comes from a different version of DM2.');
+    var mode = bytes[0] === 1 ? 'decide' : bytes[0] === 2 ? 'share' : null;
+    if (!mode) throw new Error('That code comes from a newer version of DM2.');
     var p = 1;
+    function label() {
+      var len = bytes[p++];
+      if (len === undefined || p + len > bytes.length) throw new Error('That code is incomplete.');
+      var text = utf8Decode(bytes.slice(p, p + len));
+      p += len;
+      return text;
+    }
     var seed = ((bytes[p] << 24) | (bytes[p + 1] << 16) | (bytes[p + 2] << 8) | bytes[p + 3]) >>> 0; p += 4;
     var qLen = bytes[p++];
     var question = utf8Decode(bytes.slice(p, p + qLen)); p += qLen;
@@ -1535,14 +1647,26 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     if (n < 2 || n > MAX_OPTIONS) throw new Error('That code has an impossible number of contenders.');
     var options = [];
     for (var i = 0; i < n; i++) {
-      var f = bytes[p++], len = bytes[p++];
-      if (f === undefined || len === undefined || p + len > bytes.length) throw new Error('That code is incomplete.');
+      var f = bytes[p++];
+      if (f === undefined) throw new Error('That code is incomplete.');
       if (fighterCount && f >= fighterCount) throw new Error('That code uses a fighter this version of DM2 does not have.');
-      options.push({ fighter: f, label: utf8Decode(bytes.slice(p, p + len)) });
-      p += len;
+      options.push({ fighter: f, label: label() });
+    }
+    var match = { mode: mode, seed: seed, question: question, options: options };
+    if (mode === 'share') {
+      var g = bytes[p++];
+      if (!g || g > MAX_GIFTS) throw new Error('That code has an impossible number of gifts.');
+      match.gifts = [];
+      for (var j = 0; j < g; j++) match.gifts.push(label());
     }
     if (p !== bytes.length) throw new Error('That code has extra data on the end.');
-    return { seed: seed, question: question, options: options };
+    return match;
+  }
+
+  function nextStage(rng, lastStage) { // never the same arena twice in a row
+    if (lastStage < 0) return rng.int(STAGE_COUNT);
+    var stage = rng.int(STAGE_COUNT - 1);
+    return stage >= lastStage ? stage + 1 : stage;
   }
 
   /* ---------- the tournament ----------
@@ -1551,6 +1675,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
      option exactly a 1/n chance of being the last one standing, whatever its
      position in the queue. The fight script is then written to reach that result. */
   function simulate(match) {
+    if (match.mode === 'share') return simulateShare(match);
     var rng = makeRng(match.seed);
     var n = match.options.length;
 
@@ -1567,9 +1692,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     for (var r = 1; r < n; r++) {
       var challenger = order[r];
       var challengerWins = rng.int(r + 1) === 0;
-      var stage;
-      if (lastStage < 0) stage = rng.int(STAGE_COUNT);
-      else { stage = rng.int(STAGE_COUNT - 1); if (stage >= lastStage) stage++; } // never the same arena twice in a row
+      var stage = nextStage(rng, lastStage);
       lastStage = stage;
       var winnerSide = challengerWins ? 1 : 0;
       fights.push({
@@ -1583,7 +1706,51 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
       });
       champion = challengerWins ? challenger : champion;
     }
-    return { order: order, fights: fights, winner: champion };
+    return { mode: 'decide', order: order, fights: fights, winner: champion };
+  }
+
+  /* ---------- who gets what: prize fights ----------
+     Gifts are fought for in the order they were listed. For each gift, two people
+     who are still waiting are drawn at random and fight; the winner takes the gift
+     and stops waiting. Drawing a uniform random pair and then a 50/50 fight gives
+     every waiting person exactly a 1/k chance at the gift. When one person is left
+     they take the gift on a walkover. Once everyone has a gift, everyone waits
+     again, so gifts are shared out as evenly as possible. */
+  function simulateShare(match) {
+    var rng = makeRng(match.seed);
+    var n = match.options.length;
+    var all = [];
+    for (var i = 0; i < n; i++) all.push(i);
+    var waiting = all.slice();
+    var rounds = [];
+    var lastStage = -1;
+    var lap = 0;
+    match.gifts.forEach(function (gift, g) {
+      if (!waiting.length) { waiting = all.slice(); lap++; }
+      var stage = nextStage(rng, lastStage);
+      lastStage = stage;
+      var round = { round: g + 1, gift: g, lap: lap, stage: stage };
+      if (waiting.length === 1) {
+        round.walkover = true;
+        round.winner = waiting[0];
+        round.sides = [waiting[0]];
+      } else {
+        var a = waiting[rng.int(waiting.length)];
+        var rest = waiting.filter(function (x) { return x !== a; });
+        var b = rest[rng.int(rest.length)];
+        var winnerSide = rng.int(2);
+        round.sides = [a, b];
+        round.winnerSide = winnerSide;
+        round.winner = winnerSide ? b : a;
+        round.loser = winnerSide ? a : b;
+        round.actions = scriptFight(rng, winnerSide);
+      }
+      waiting = waiting.filter(function (x) { return x !== round.winner; });
+      rounds.push(round);
+    });
+    var awards = all.map(function () { return []; });
+    rounds.forEach(function (r) { awards[r.winner].push(r.gift); });
+    return { mode: 'share', rounds: rounds, awards: awards };
   }
 
   /* A fight is a list of actions: {by: side, type, dmg, hp: [left, right] after}.
@@ -1634,7 +1801,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
   }
 
   var api = {
-    CODE_VERSION: CODE_VERSION, MAX_OPTIONS: MAX_OPTIONS, MAX_LABEL: MAX_LABEL,
+    CODE_VERSION: CODE_VERSION, MAX_OPTIONS: MAX_OPTIONS, MAX_GIFTS: MAX_GIFTS, MAX_LABEL: MAX_LABEL,
     MAX_QUESTION: MAX_QUESTION, MAX_HP: MAX_HP, STAGE_COUNT: STAGE_COUNT,
     makeRng: makeRng, encodeMatch: encodeMatch, decodeMatch: decodeMatch,
     normalizeCode: normalizeCode, simulate: simulate, randomSeed: randomSeed, clip: clip
@@ -2200,6 +2367,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     this.camX = 0;
     this.fade = 0; // 0 = clear, 16 = black
     this.parade = null;
+    this.prize = null;
     this.hooks = {};
     this.token = 0;
     this.running = false;
@@ -2268,7 +2436,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     this.abort();
     this.fighters = [null, null];
     this.particles = []; this.texts = []; this.projectiles = [];
-    this.flash = null; this.shake = 0; this.fade = 0; this.parade = null;
+    this.flash = null; this.shake = 0; this.fade = 0; this.parade = null; this.prize = null;
   };
 
   Arena.prototype._frame = function (now) {
@@ -2362,6 +2530,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     order.forEach(function (i) { var f = self.fighters[i]; if (f && f.visible) self._drawShadow(ctx, f.x - cam, f.y); });
     order.forEach(function (i) { var f = self.fighters[i]; if (f && f.visible) self._drawFighter(ctx, f, cam); });
 
+    if (this.prize) this._drawPrize(ctx, cam);
     this.projectiles.forEach(function (pr) { self._drawProjectile(ctx, pr, cam); });
     this.particles.forEach(function (p) {
       ctx.globalAlpha = Math.max(0, Math.min(1, p.life / (p.max || 1) * 1.5));
@@ -2524,12 +2693,14 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
 
     return (async function () {
       // set the scene
-      if (c.first) {
+      if (c.first || c.fresh) { // a brand new pair walks in (always the case in prize fights)
         self.parade = null;
-        self.fade = 16;
+        if (c.first) self.fade = 16;
+        else { await self.tween(self, { fade: 16 }, 300, 'linear'); check(); }
         self.setStage(fight.stage);
         F[0] = self.makeFighter(c.ids[0], 0);
         F[1] = self.makeFighter(c.ids[1], 1);
+        self.setPrize(c.prize);
         hooks.matchup && hooks.matchup(c);
         await self.tween(self, { fade: 0 }, 350, 'linear');
         sfx('step');
@@ -2547,9 +2718,9 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
       }
       check();
       hooks.stageName && hooks.stageName(STAGES[fight.stage].name);
-      hooks.banner && hooks.banner(c.final ? 'FINAL ROUND' : 'ROUND ' + fight.round, 'round', 900);
+      hooks.banner && hooks.banner(c.intro || (c.final ? 'FINAL ROUND' : 'ROUND ' + fight.round), 'round', c.intro ? 1300 : 900);
       sfx('round');
-      await self.wait(1000);
+      await self.wait(c.intro ? 1400 : 1000);
       hooks.banner && hooks.banner('FIGHT!', 'fight', 650);
       sfx('fight');
       await self.wait(650);
@@ -2670,6 +2841,13 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     }
     winner.idle = true;
 
+    if (c.prize) {
+      await this.awardPrize(winner, sfx);
+      if (c.final) { this.confetti(120); sfx('victory'); }
+      await this.wait(c.final ? 1200 : 700);
+      return;
+    }
+
     if (c.final) {
       winner.crown = true;
       this.confetti(120);
@@ -2696,6 +2874,90 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     await this.wait(250);
   };
 
+  /* ---------- prize fights (who gets what) ---------- */
+  var PRIZE_COLORS = ['#e83838', '#3a78f0', '#3cc84a', '#a64ae8', '#ff9a2a', '#ff5aa8'];
+
+  Arena.prototype.setPrize = function (prize) {
+    this.prize = prize ? { x: 160, y: 36, color: PRIZE_COLORS[prize.index % PRIZE_COLORS.length], held: null } : null;
+  };
+
+  Arena.prototype.awardPrize = async function (winner, sfx) {
+    var pr = this.prize;
+    if (!pr) return;
+    sfx('heal');
+    await this.tween(pr, { x: winner.x, y: FEET_Y - 82 }, 450, 'inout');
+    pr.held = winner;
+    this.burst(winner.x, FEET_Y - 82, '#ffe14a', 22, 90);
+    this.burst(winner.x, FEET_Y - 82, pr.color, 12, 70);
+    for (var h = 0; h < 2; h++) {
+      sfx('jump');
+      await this.tween(winner, { y: -14 }, 150, 'out');
+      await this.tween(winner, { y: 0 }, 150, 'in');
+    }
+  };
+
+  /* The last person waiting takes a gift without a fight. c: { round, id, meta, label, prize, first, final, intro } */
+  Arena.prototype.playWalkover = function (c) {
+    var self = this, token = this.token, hooks = this.hooks, F = this.fighters;
+    var sfx = function (n) { if (token === self.token && hooks.sfx) hooks.sfx(n); };
+    function check() { if (token !== self.token) throw new Aborted(); }
+    return (async function () {
+      self.parade = null;
+      if (c.first) self.fade = 16;
+      else { await self.tween(self, { fade: 16 }, 300, 'linear'); check(); }
+      self.setStage(c.round.stage);
+      F[0] = self.makeFighter(c.id, 0);
+      F[1] = null;
+      self.setPrize(c.prize);
+      hooks.matchup && hooks.matchup(c);
+      await self.tween(self, { fade: 0 }, 300, 'linear');
+      hooks.stageName && hooks.stageName(STAGES[c.round.stage].name);
+      sfx('step');
+      await self.tween(F[0], { x: 160 }, 900, 'out');
+      check();
+      hooks.banner && hooks.banner(c.intro, 'round', 1300);
+      sfx('round');
+      await self.wait(1400);
+      hooks.banner && hooks.banner('WALKOVER!', 'fight', 900);
+      sfx('fight');
+      await self.wait(700);
+      hooks.koDone && hooks.koDone(c);
+      await self.awardPrize(F[0], sfx);
+      if (c.final) { self.confetti(120); sfx('victory'); }
+      await self.wait(c.final ? 1200 : 700);
+    })();
+  };
+
+  function drawPresent(ctx, x, y, color, t) {
+    x = Math.round(x); y = Math.round(y);
+    var ink = '#140c1c', ribbon = '#ffe14a';
+    ctx.fillStyle = ink;
+    ctx.fillRect(x - 7, y - 4, 14, 14); ctx.fillRect(x - 5, y - 8, 4, 4); ctx.fillRect(x + 1, y - 8, 4, 4);
+    ctx.fillStyle = color;
+    ctx.fillRect(x - 6, y - 3, 12, 3); ctx.fillRect(x - 5, y + 1, 10, 8);
+    ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(x + 2, y + 1, 3, 8);
+    ctx.fillStyle = ribbon;
+    ctx.fillRect(x - 1, y - 3, 2, 12); ctx.fillRect(x - 4, y - 7, 2, 2); ctx.fillRect(x + 2, y - 7, 2, 2);
+    ctx.fillRect(x - 2, y - 5, 4, 1);
+    if (Math.floor(t / 180) % 3 === 0) { ctx.fillStyle = '#ffffff'; ctx.fillRect(x - 4, y - 2, 1, 1); }
+  }
+
+  Arena.prototype._drawPrize = function (ctx, cam) {
+    var pr = this.prize, t = this.time;
+    if (pr.held) {
+      if (!pr.held.visible) return;
+      pr.x = pr.held.x; pr.y = FEET_Y - 82 + pr.held.y;
+    }
+    var bob = pr.held ? 0 : Math.round(Math.sin(t / 260) * 3);
+    if (!pr.held && Math.floor(t / 120) % 4 === 0) { // sparkle around the prize while it is up for grabs
+      var a = (t / 300) % (Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(Math.round(pr.x - cam + Math.cos(a) * 14), Math.round(pr.y + bob + Math.sin(a) * 10), 1, 1);
+      ctx.fillRect(Math.round(pr.x - cam - Math.cos(a) * 14), Math.round(pr.y + bob - Math.sin(a) * 10), 1, 1);
+    }
+    drawPresent(ctx, pr.x - cam, pr.y + bob, pr.color, t);
+  };
+
   Arena.Aborted = Aborted;
   Arena.W = W; Arena.H = H;
   root.DM2 = root.DM2 || {};
@@ -2710,13 +2972,20 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
   var DM2 = window.DM2, E = DM2.engine, FIGHTERS = DM2.roster.FIGHTERS, audio = DM2.audio, Arena = DM2.Arena;
   var $ = function (id) { return document.getElementById(id); };
 
-  var EXAMPLE = { question: 'Where should we eat tonight?', labels: ['Pizza', 'Tacos', 'Sushi', 'Burgers'] };
+  var EXAMPLES = {
+    decide: { question: 'Where should we eat tonight?', labels: ['Pizza', 'Tacos', 'Sushi', 'Burgers'] },
+    share: { question: 'Secret Santa: who gets which present?', labels: ['Amy', 'Ben', 'Cal', 'Dee'], gifts: ['Lego set', 'Cosy scarf', 'Coffee mug', 'Fancy socks'] }
+  };
+  var EXAMPLE = EXAMPLES.decide;
 
   var state = {
     screen: 'title',
     question: EXAMPLE.question,
     rows: [],
+    gifts: [],
+    mode: 'decide',
     example: true,
+    tally: [],
     match: null,
     result: null,
     code: '',
@@ -2786,7 +3055,32 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     labels.forEach(function (l) { state.rows.push({ label: l, fighter: unusedFighter() }); });
   }
 
+  function loadExample(mode) {
+    var ex = EXAMPLES[mode];
+    state.question = ex.question;
+    initRows(ex.labels);
+    state.gifts = (ex.gifts || ['', '']).slice();
+    state.example = true;
+  }
+
+  function setMode(mode) {
+    if (state.mode === mode) return;
+    state.mode = mode;
+    if (state.example) loadExample(mode);
+    else if (mode === 'share' && !state.gifts.length) state.gifts = ['', ''];
+    renderSetup();
+  }
+
   function renderSetup() {
+    var share = state.mode === 'share';
+    $('mode-decide').setAttribute('aria-pressed', String(!share));
+    $('mode-share').setAttribute('aria-pressed', String(share));
+    $('setup-title').textContent = share ? 'Who gets what?' : 'Choose your contenders';
+    $('contenders-label').textContent = share ? 'People' : 'Contenders';
+    $('question').placeholder = share ? 'Secret Santa: who gets which present?' : 'Where should we eat tonight?';
+    $('gifts-panel').hidden = !share;
+    $('fighter-hint').textContent = 'Tap a fighter to choose who represents that ' + (share ? 'person.' : 'option.');
+    if (share) renderGifts();
     $('question').value = state.question;
     $('example-note').hidden = !state.example;
     var list = $('contenders');
@@ -2808,9 +3102,9 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
       input.className = 'field'; input.type = 'text'; input.maxLength = E.MAX_LABEL;
       input.id = 'contender-' + i;
       input.value = row.label;
-      input.placeholder = 'Option ' + (i + 1);
+      input.placeholder = (state.mode === 'share' ? 'Person ' : 'Option ') + (i + 1);
       input.autocomplete = 'off';
-      input.setAttribute('aria-label', 'Contender ' + (i + 1));
+      input.setAttribute('aria-label', (state.mode === 'share' ? 'Person ' : 'Contender ') + (i + 1));
       input.addEventListener('input', function () { row.label = input.value; markEdited(); });
       input.addEventListener('keydown', function (e) {
         if (e.key === 'Enter') {
@@ -2838,6 +3132,55 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     $('btn-add').disabled = state.rows.length >= E.MAX_OPTIONS;
   }
 
+  function renderGifts() {
+    var list = $('gifts');
+    list.innerHTML = '';
+    state.gifts.forEach(function (gift, i) {
+      var li = document.createElement('li');
+      var row = document.createElement('div');
+      row.className = 'gift-row';
+      var input = document.createElement('input');
+      input.className = 'field'; input.type = 'text'; input.maxLength = E.MAX_LABEL;
+      input.id = 'gift-' + i;
+      input.value = gift;
+      input.placeholder = 'Gift ' + (i + 1);
+      input.autocomplete = 'off';
+      input.setAttribute('aria-label', 'Gift ' + (i + 1));
+      input.addEventListener('input', function () { state.gifts[i] = input.value; markEdited(); });
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (i === state.gifts.length - 1 && state.gifts.length < E.MAX_GIFTS && input.value.trim()) addGift();
+          else { var next = $('gift-' + (i + 1)); if (next) next.focus(); }
+        }
+      });
+      var rm = document.createElement('button');
+      rm.type = 'button'; rm.className = 'remove'; rm.textContent = 'X';
+      rm.setAttribute('aria-label', 'Remove gift ' + (i + 1));
+      rm.disabled = state.gifts.length <= 1;
+      rm.addEventListener('click', function () {
+        audio.play('back');
+        state.gifts.splice(i, 1);
+        markEdited();
+        renderGifts();
+      });
+      row.appendChild(input); row.appendChild(rm);
+      li.appendChild(row);
+      list.appendChild(li);
+    });
+    $('gift-count').textContent = state.gifts.length + ' / ' + E.MAX_GIFTS;
+    $('btn-add-gift').disabled = state.gifts.length >= E.MAX_GIFTS;
+  }
+
+  function addGift() {
+    if (state.gifts.length >= E.MAX_GIFTS) return;
+    audio.play('add');
+    state.gifts.push('');
+    markEdited();
+    renderGifts();
+    $('gift-' + (state.gifts.length - 1)).focus();
+  }
+
   function markEdited() {
     if (state.example) { state.example = false; $('example-note').hidden = true; }
     $('setup-error').hidden = true;
@@ -2852,11 +3195,17 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     $('contender-' + (state.rows.length - 1)).focus();
   }
 
-  function openSetup(fromMatch) {
+  function openSetup(fromMatch, mode) {
     if (fromMatch) {
+      state.mode = fromMatch.mode === 'share' ? 'share' : 'decide';
       state.question = fromMatch.question;
       state.rows = fromMatch.options.map(function (o) { return { label: o.label, fighter: o.fighter }; });
+      if (fromMatch.gifts) state.gifts = fromMatch.gifts.slice();
       state.example = false;
+    } else if (mode && mode !== state.mode) {
+      state.mode = mode;
+      if (state.example) loadExample(mode);
+      else if (mode === 'share' && !state.gifts.length) state.gifts = ['', ''];
     }
     show('setup');
     renderSetup();
@@ -2866,7 +3215,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
   function openPicker(rowIndex) {
     state.pickerRow = rowIndex;
     var row = state.rows[rowIndex];
-    $('picker-for').textContent = 'Who fights for ' + (row.label.trim() ? '"' + row.label.trim() + '"' : 'option ' + (rowIndex + 1)) + '? Picking a fighter already in use swaps the two.';
+    $('picker-for').textContent = 'Who fights for ' + (row.label.trim() ? '"' + row.label.trim() + '"' : (state.mode === 'share' ? 'person ' : 'option ') + (rowIndex + 1)) + '? Picking a fighter already in use swaps the two.';
     var grid = $('picker-grid');
     grid.innerHTML = '';
     FIGHTERS.forEach(function (f, fi) {
@@ -2906,6 +3255,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
 
   function setHud(side, index, hp, instant) {
     var el = $('hud-' + side), info = sideInfo(index);
+    el.classList.remove('empty');
     el.querySelector('.hud-label').textContent = info.label;
     el.querySelector('.hud-char').textContent = info.fighter.name;
     Arena.drawPortrait(el.querySelector('.hud-face'), info.fighter.id, { head: true });
@@ -2969,8 +3319,12 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
   function queueState(idx, cls) {
     var li = $('q-' + idx);
     if (!li) return;
-    li.classList.remove('fighting', 'out', 'champ');
+    li.classList.remove('fighting', 'out', 'champ', 'got');
+    if (!cls && state.tally[idx]) cls = 'got';
     if (cls) li.classList.add(cls);
+    var badge = li.querySelector('.badge');
+    if (state.tally[idx] && !badge) { badge = document.createElement('span'); badge.className = 'badge'; li.appendChild(badge); }
+    if (badge) badge.textContent = state.tally[idx] > 1 ? state.tally[idx] + ' GIFTS' : 'GIFT';
     if (cls === 'fighting') { // scroll the strip only, never the page
       var q = $('queue');
       q.scrollTo({ left: li.offsetLeft - q.offsetLeft - q.clientWidth / 2 + li.offsetWidth / 2, behavior: 'smooth' });
@@ -2983,6 +3337,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     comment: comment,
     stageName: function (name) { $('stage-name').textContent = name; },
     matchup: function (c) {
+      if (c.prize) return shareMatchup(c);
       var f = c.fight;
       setHud(0, f.sides[0], 100, true);
       setHud(1, f.sides[1], 100, true);
@@ -3001,6 +3356,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
       setTimeout(function () { fill.classList.remove('heal'); }, 700);
     },
     koDone: function (c) {
+      if (c.prize) return shareAward(c);
       var f = c.fight;
       queueState(f.loser, 'out');
       queueState(f.winner, c.final ? 'champ' : 'fighting');
@@ -3011,6 +3367,55 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
         : '<b>' + escapeHtml(label) + '</b> wins round ' + f.round + '. Winner stays on!';
     }
   };
+
+  /* ---------- who gets what: HUD and tallies ---------- */
+  function giftName(i) { return state.match.gifts[i]; }
+
+  function renderGiftTable() {
+    var t = $('gift-table');
+    t.innerHTML = '';
+    state.match.gifts.forEach(function (g, i) {
+      var li = document.createElement('li');
+      li.id = 'gt-' + i;
+      li.innerHTML = '<b>' + escapeHtml(g) + '</b> <span>&rarr; ?</span>';
+      t.appendChild(li);
+    });
+  }
+
+  function shareMatchup(c) {
+    var r = c.round, total = state.match.gifts.length, gift = giftName(r.gift);
+    $('hud-round').textContent = 'GIFT ' + r.round + '/' + total;
+    $('prize-line').innerHTML = 'Up for grabs: <b>' + escapeHtml(gift) + '</b>';
+    var row = $('gt-' + r.gift);
+    if (row) row.classList.add('current');
+    setHud(0, r.sides[0], 100, true);
+    if (r.walkover) {
+      $('hud-1').classList.add('empty');
+      queueState(r.sides[0], 'fighting');
+      $('commentary').innerHTML = '<b>' + escapeHtml(c.labels[0]) + '</b> is the last one waiting. No fight needed for <b>' + escapeHtml(gift) + '</b>.';
+    } else {
+      setHud(1, r.sides[1], 100, true);
+      queueState(r.sides[0], 'fighting');
+      queueState(r.sides[1], 'fighting');
+      $('commentary').innerHTML = '<b>' + escapeHtml(c.labels[0]) + '</b> and <b>' + escapeHtml(c.labels[1]) +
+        '</b> are drawn to fight for <b>' + escapeHtml(gift) + '</b>!';
+    }
+  }
+
+  function shareAward(c) {
+    var r = c.round, gift = giftName(r.gift), who = sideInfo(r.winner).label;
+    state.tally[r.winner] = (state.tally[r.winner] || 0) + 1;
+    queueState(r.winner, 'got');
+    if (!r.walkover) queueState(r.loser, null);
+    var row = $('gt-' + r.gift);
+    if (row) {
+      row.classList.remove('current'); row.classList.add('won');
+      row.querySelector('span').innerHTML = '&rarr; ' + escapeHtml(who);
+    }
+    banner(who + ' gets ' + gift + '!', 'win', c.final ? 2200 : 1500);
+    $('commentary').innerHTML = '<b>' + escapeHtml(who) + '</b> ' + (r.walkover ? 'takes' : 'wins') + ' <b>' + escapeHtml(gift) + '</b>!' +
+      (c.final ? ' Every gift has a home.' : '');
+  }
 
   function stopPlayback() {
     state.playToken++;
@@ -3032,12 +3437,40 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     arena.speed = state.speed;
     $('fight-q').textContent = match.question ? match.question : '';
     $('stage-name').textContent = '';
-    renderQueue(state.result.order);
+    var share = match.mode === 'share';
+    state.tally = match.options.map(function () { return 0; });
+    $('prize-line').hidden = !share;
+    $('gift-wrap').hidden = !share;
+    $('hud-1').classList.remove('empty');
+    $('queue-label').textContent = share ? 'People' : 'Fight order';
+    renderQueue(share ? match.options.map(function (o, i) { return i; }) : state.result.order);
+    if (share) renderGiftTable();
     audio.startMusic();
     var fights = state.result.fights;
 
     (async function () {
       try {
+        if (share) {
+          var rounds = state.result.rounds;
+          for (var g = 0; g < rounds.length; g++) {
+            var r = rounds[g];
+            var common = {
+              round: r, prize: { index: r.gift }, first: g === 0, final: g === rounds.length - 1,
+              intro: 'Gift ' + r.round + ': ' + giftName(r.gift)
+            };
+            if (r.walkover) {
+              var solo = sideInfo(r.winner);
+              await arena.playWalkover(Object.assign(common, { id: solo.fighter.id, meta: [solo.fighter], labels: [solo.label] }));
+            } else {
+              var pa = sideInfo(r.sides[0]), pb = sideInfo(r.sides[1]);
+              await arena.playFight(Object.assign(common, {
+                fight: r, fresh: true,
+                ids: [pa.fighter.id, pb.fighter.id], meta: [pa.fighter, pb.fighter], labels: [pa.label, pb.label]
+              }));
+            }
+          }
+          fights = [];
+        }
         for (var i = 0; i < fights.length; i++) {
           var f = fights[i];
           var a = sideInfo(f.sides[0]), b = sideInfo(f.sides[1]);
@@ -3065,6 +3498,16 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     var m = state.match, r = state.result;
     stopPlayback();
     show('result');
+    $('code-box').textContent = state.code;
+    $('copy-toast').textContent = '';
+    $('btn-copy-link').hidden = !shareLinkAvailable();
+    var share = m.mode === 'share';
+    $('code-hint').textContent = share
+      ? 'Anyone who enters this code sees the same people, the same gifts, the same fights and the same result.'
+      : 'Anyone who enters this code sees the same contenders, the same fights and the same winner.';
+    $('share-hero').hidden = !share;
+    $('decide-hero').hidden = share;
+    if (share) return showShareResult();
     var w = sideInfo(r.winner);
     $('result-q').textContent = m.question || '';
     $('winner-label').textContent = w.label;
@@ -3072,10 +3515,6 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     $('winner-sub').textContent = 'Fought as ' + w.fighter.name + ' and won ' + wins + (wins === 1 ? ' fight' : ' fights') +
       '. Every contender had the same 1 in ' + m.options.length + ' chance.';
     Arena.drawPortrait($('winner-canvas'), w.fighter.id);
-    $('code-box').textContent = state.code;
-    $('copy-toast').textContent = '';
-    $('btn-copy-link').hidden = !shareLinkAvailable();
-
     var log = $('fight-log');
     log.innerHTML = '';
     r.fights.forEach(function (f, i) {
@@ -3086,6 +3525,65 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
       if (i === r.fights.length - 1) li.className = 'final';
       li.innerHTML = '<b>' + escapeHtml(W.label) + '</b> (' + escapeHtml(W.fighter.name) + ') beat ' + escapeHtml(L.label) +
         ' (' + escapeHtml(L.fighter.name) + ') with ' + escapeHtml(how) + ' in ' + f.actions.length + ' moves.';
+      log.appendChild(li);
+    });
+    audio.play('victory');
+  }
+
+  function showShareResult() {
+    var m = state.match, r = state.result;
+    $('share-q').textContent = m.question || '';
+    var list = $('share-list');
+    list.innerHTML = '';
+    function personCell(idx) {
+      var info = sideInfo(idx);
+      var who = document.createElement('div');
+      who.className = 'share-who';
+      var sp = document.createElement('span');
+      sp.textContent = info.label;
+      var sm = document.createElement('small'); sm.textContent = info.fighter.name; sp.appendChild(sm);
+      who.appendChild(sp);
+      who.appendChild(portrait(info.fighter.id, 20, 16, { head: true }));
+      return who;
+    }
+    r.rounds.forEach(function (round) {
+      var li = document.createElement('li');
+      var g = document.createElement('span');
+      g.className = 'share-gift';
+      g.textContent = giftName(round.gift);
+      li.appendChild(g);
+      li.appendChild(personCell(round.winner));
+      list.appendChild(li);
+    });
+    r.awards.forEach(function (gifts, idx) {
+      if (gifts.length) return;
+      var li = document.createElement('li');
+      li.className = 'nothing';
+      var g = document.createElement('span');
+      g.className = 'share-gift';
+      g.textContent = 'No gift this time';
+      li.appendChild(g);
+      li.appendChild(personCell(idx));
+      list.appendChild(li);
+    });
+    var fightsFought = r.rounds.filter(function (x) { return !x.walkover; }).length;
+    $('share-sub').textContent = m.gifts.length + (m.gifts.length === 1 ? ' gift' : ' gifts') + ' shared out in ' + fightsFought +
+      (fightsFought === 1 ? ' fight' : ' fights') + '. Everyone had the same chance at every gift.';
+
+    var log = $('fight-log');
+    log.innerHTML = '';
+    r.rounds.forEach(function (round, i) {
+      var li = document.createElement('li');
+      if (i === r.rounds.length - 1) li.className = 'final';
+      var W = sideInfo(round.winner), gift = escapeHtml(giftName(round.gift));
+      if (round.walkover) {
+        li.innerHTML = gift + ': <b>' + escapeHtml(W.label) + '</b> (' + escapeHtml(W.fighter.name) + ') was the last one waiting and took it on a walkover.';
+      } else {
+        var L = sideInfo(round.loser), last = round.actions[round.actions.length - 1];
+        var how = last.type === 'special' ? W.fighter.special : (last.type === 'crit' ? 'a critical hit' : 'a final blow');
+        li.innerHTML = gift + ': <b>' + escapeHtml(W.label) + '</b> (' + escapeHtml(W.fighter.name) + ') beat ' + escapeHtml(L.label) +
+          ' (' + escapeHtml(L.fighter.name) + ') with ' + escapeHtml(how) + ' in ' + round.actions.length + ' moves.';
+      }
       log.appendChild(li);
     });
     audio.play('victory');
@@ -3129,6 +3627,14 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
         li.appendChild(sp);
         list.appendChild(li);
       });
+      var share = m.mode === 'share';
+      $('preview-people-label').textContent = share ? 'People' : 'Contenders';
+      $('preview-gifts-wrap').hidden = !share;
+      if (share) {
+        var gl = $('preview-gifts');
+        gl.innerHTML = '';
+        m.gifts.forEach(function (g) { var li = document.createElement('li'); li.textContent = g; gl.appendChild(li); });
+      }
       $('code-preview').hidden = false;
       audio.play('add');
       return true;
@@ -3155,7 +3661,11 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
   /* ---------- wiring ---------- */
   function on(id, fn) { $(id).addEventListener('click', fn); }
 
-  on('btn-new', function () { audio.play('select'); openSetup(); });
+  on('btn-new', function () { audio.play('select'); openSetup(null, 'decide'); });
+  on('btn-share', function () { audio.play('select'); openSetup(null, 'share'); });
+  on('mode-decide', function () { audio.play('select'); setMode('decide'); });
+  on('mode-share', function () { audio.play('select'); setMode('share'); });
+  on('btn-add-gift', addGift);
   on('btn-have-code', function () { audio.play('select'); openCode(); });
   on('brand', function () { audio.play('back'); show('title'); });
   on('btn-add', addRow);
@@ -3170,16 +3680,21 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     state.question = '';
     state.rows = [];
     initRows(['', '']);
+    state.gifts = ['', ''];
     state.example = false;
     renderSetup();
     $('contender-0').focus();
   });
   $('question').addEventListener('input', function () { state.question = $('question').value; markEdited(); });
   on('btn-fight', function () {
+    var share = state.mode === 'share';
     var named = state.rows.filter(function (r) { return r.label.trim(); });
+    var gifts = state.gifts.map(function (g) { return g.trim(); }).filter(Boolean);
     var err = $('setup-error');
-    if (named.length < 2) {
-      err.textContent = 'Name at least two contenders to start the death match.';
+    var problem = named.length < 2 ? (share ? 'Name at least two people to fight over the gifts.' : 'Name at least two contenders to start the death match.')
+      : (share && !gifts.length) ? 'Add at least one gift for the people to fight over.' : '';
+    if (problem) {
+      err.textContent = problem;
       err.hidden = false;
       audio.play('back');
       return;
@@ -3187,10 +3702,12 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     err.hidden = true;
     audio.unlock();
     var match = {
+      mode: state.mode,
       seed: E.randomSeed(),
       question: state.question.trim(),
       options: named.map(function (r) { return { label: r.label.trim(), fighter: r.fighter }; })
     };
+    if (share) match.gifts = gifts;
     // play exactly what the code will contain
     play(E.decodeMatch(E.encodeMatch(match), FIGHTERS.length));
   });
@@ -3214,7 +3731,8 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
   on('btn-replay', function () { audio.play('select'); play(state.match); });
   on('btn-rematch', function () {
     audio.play('select');
-    var m = { seed: E.randomSeed(), question: state.match.question, options: state.match.options.slice() };
+    var m = { mode: state.match.mode, seed: E.randomSeed(), question: state.match.question, options: state.match.options.slice() };
+    if (state.match.gifts) m.gifts = state.match.gifts.slice();
     play(m);
   });
   on('btn-edit', function () { audio.play('select'); openSetup(state.match); });

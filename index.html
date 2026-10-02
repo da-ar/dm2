@@ -34,35 +34,53 @@
     <div class="stage-frame" id="title-frame"></div>
     <p class="tagline">Can't decide? Give every option a fighter. Winner stays on. The last one standing is your decision.</p>
     <div class="actions">
-      <button class="btn btn-hot btn-big" id="btn-new" type="button">New death match</button>
+      <button class="btn btn-hot btn-big" id="btn-new" type="button">Pick a winner</button>
+      <button class="btn btn-hot btn-big btn-alt" id="btn-share" type="button">Who gets what</button>
+    </div>
+    <div class="actions">
       <button class="btn" id="btn-have-code" type="button">I have a code</button>
     </div>
     <ol class="how">
-      <li><b>Enter your options</b> and pick a fighter for each, or let fate assign them.</li>
-      <li><b>Watch them brawl.</b> Two fight at a time and the winner stays on.</li>
+      <li><b>Enter your options</b>, or a list of people and the gifts they're fighting over. Every option gets a fighter.</li>
+      <li><b>Watch them brawl.</b> Winner stays on, or in Who gets what, two people fight for each gift.</li>
       <li><b>Share the code.</b> Anyone can replay the same fights and the same result.</li>
     </ol>
   </section>
 
   <!-- SETUP -->
   <section class="screen" id="screen-setup" data-screen="setup" hidden>
-    <h2 class="screen-title">Choose your contenders</h2>
+    <h2 class="screen-title" id="setup-title">Choose your contenders</h2>
+    <div class="mode-switch" role="group" aria-label="Game type">
+      <button class="mode-btn" id="mode-decide" data-mode="decide" type="button" aria-pressed="true"><b>Pick a winner</b><span>Options fight. One is left standing.</span></button>
+      <button class="mode-btn" id="mode-share" data-mode="share" type="button" aria-pressed="false"><b>Who gets what</b><span>People fight for each gift in turn.</span></button>
+    </div>
     <div class="panel">
       <label class="field-label" for="question">What are we deciding? <span class="opt">(optional)</span></label>
       <input class="field" id="question" type="text" maxlength="60" placeholder="Where should we eat tonight?" autocomplete="off">
     </div>
     <div class="panel">
       <div class="list-head">
-        <span class="field-label">Contenders</span>
+        <span class="field-label" id="contenders-label">Contenders</span>
         <span class="count" id="count">0 / 20</span>
       </div>
-      <p class="hint" id="example-note">These are example options. Type over them or <button class="linkbtn" id="btn-clear" type="button">clear them all</button>.</p>
+      <p class="hint" id="example-note">These are examples. Type over them or <button class="linkbtn" id="btn-clear" type="button">clear them all</button>.</p>
       <ol class="contenders" id="contenders"></ol>
       <div class="row-actions">
         <button class="btn btn-small" id="btn-add" type="button">+ Add contender</button>
         <button class="btn btn-small" id="btn-shuffle" type="button">Shuffle fighters</button>
       </div>
-      <p class="hint">Tap a fighter to choose who represents that option.</p>
+      <p class="hint" id="fighter-hint">Tap a fighter to choose who represents that option.</p>
+    </div>
+    <div class="panel" id="gifts-panel" hidden>
+      <div class="list-head">
+        <span class="field-label">Gifts</span>
+        <span class="count" id="gift-count">0 / 20</span>
+      </div>
+      <ol class="gifts" id="gifts"></ol>
+      <div class="row-actions">
+        <button class="btn btn-small" id="btn-add-gift" type="button">+ Add gift</button>
+      </div>
+      <p class="hint">Gifts are fought for in this order, one fight each. Two people who don't have a gift yet are drawn at random to fight for it. If there are more gifts than people, nobody gets a second gift until everyone has one.</p>
     </div>
     <p class="error" id="setup-error" role="alert" hidden></p>
     <div class="actions">
@@ -85,8 +103,12 @@
     <div class="panel" id="code-preview" hidden>
       <span class="field-label">The question</span>
       <p class="preview-q" id="preview-q"></p>
-      <span class="field-label">Contenders</span>
+      <span class="field-label" id="preview-people-label">Contenders</span>
       <ul class="preview-list" id="preview-list"></ul>
+      <div id="preview-gifts-wrap" hidden>
+        <span class="field-label">Gifts, in fight order</span>
+        <ol class="preview-gifts" id="preview-gifts"></ol>
+      </div>
       <div class="actions">
         <button class="btn btn-hot btn-big" id="btn-watch-code" type="button">Watch the fights</button>
       </div>
@@ -96,6 +118,7 @@
   <!-- FIGHT -->
   <section class="screen" id="screen-fight" data-screen="fight" hidden>
     <p class="fight-q" id="fight-q"></p>
+    <p class="prize-line" id="prize-line" hidden></p>
     <div class="hud">
       <div class="hud-side" id="hud-0">
         <canvas class="hud-face" width="40" height="32"></canvas>
@@ -129,14 +152,24 @@
       <button class="btn btn-small" id="btn-skip" type="button">Skip to result</button>
     </div>
     <div class="queue-wrap">
-      <span class="field-label">Fight order</span>
+      <span class="field-label" id="queue-label">Fight order</span>
       <ol class="queue" id="queue"></ol>
+    </div>
+    <div class="panel" id="gift-wrap" hidden>
+      <span class="field-label">Gifts</span>
+      <ol class="gift-table" id="gift-table"></ol>
     </div>
   </section>
 
   <!-- RESULT -->
   <section class="screen" id="screen-result" data-screen="result" hidden>
-    <div class="result-hero">
+    <div class="result-hero" id="share-hero" hidden>
+      <p class="result-question" id="share-q"></p>
+      <p class="eyebrow">Who gets what</p>
+      <ol class="share-list" id="share-list"></ol>
+      <p class="winner-sub" id="share-sub"></p>
+    </div>
+    <div class="result-hero" id="decide-hero">
       <p class="result-question" id="result-q"></p>
       <p class="eyebrow">The decision is</p>
       <div class="winner-stage">
@@ -148,7 +181,7 @@
     </div>
     <div class="panel code-panel">
       <span class="field-label">Your match code</span>
-      <p class="hint">Anyone who enters this code sees the same contenders, the same fights and the same winner.</p>
+      <p class="hint" id="code-hint">Anyone who enters this code sees the same contenders, the same fights and the same winner.</p>
       <output class="code-box" id="code-box"></output>
       <div class="actions left">
         <button class="btn btn-hot" id="btn-copy-code" type="button">Copy code</button>

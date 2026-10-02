@@ -4,9 +4,10 @@
 (function (root) {
   'use strict';
 
-  var CODE_VERSION = 1;
+  var CODE_VERSION = 2; // newest code format this build writes (1 = pick a winner, 2 = who gets what)
   var CODE_PREFIX = 'DM2-';
   var MAX_OPTIONS = 20;
+  var MAX_GIFTS = 20;
   var MAX_LABEL = 32;     // characters
   var MAX_QUESTION = 60;  // characters
   var MAX_HP = 100;
@@ -96,23 +97,40 @@
   }
 
   /* ---------- match codes ----------
-     byte 0      version
-     bytes 1-4   seed (uint32, big endian)
-     byte 5      question length (bytes), then question UTF-8
-     next byte   option count, then per option: fighter index, label length, label UTF-8
-     last byte   checksum                                                        */
+     Version 1 (pick a winner):
+       byte 0      1
+       bytes 1-4   seed (uint32, big endian)
+       next        question length (bytes), then question UTF-8
+       next        option count, then per option: fighter index, label length, label UTF-8
+       last byte   checksum
+     Version 2 (who gets what): as version 1, then after the people
+       next        gift count, then per gift: label length, label UTF-8
+       last byte   checksum
+     Version 1 codes must keep decoding and replaying exactly as they always have. */
+  var MODE_VERSION = { decide: 1, share: 2 };
+
+  function pushLabel(bytes, text) {
+    var l = utf8Encode(clip(text, MAX_LABEL));
+    bytes.push(l.length);
+    for (var i = 0; i < l.length; i++) bytes.push(l[i]);
+  }
+
   function encodeMatch(match) {
-    var bytes = [CODE_VERSION];
+    var mode = match.mode === 'share' ? 'share' : 'decide';
+    var bytes = [MODE_VERSION[mode]];
     var seed = match.seed >>> 0;
     bytes.push((seed >>> 24) & 255, (seed >>> 16) & 255, (seed >>> 8) & 255, seed & 255);
     var q = utf8Encode(clip(match.question, MAX_QUESTION));
     bytes.push(q.length); bytes = bytes.concat(q);
     bytes.push(match.options.length);
     match.options.forEach(function (o) {
-      var l = utf8Encode(clip(o.label, MAX_LABEL));
-      bytes.push(o.fighter & 255, l.length);
-      bytes = bytes.concat(l);
+      bytes.push(o.fighter & 255);
+      pushLabel(bytes, o.label);
     });
+    if (mode === 'share') {
+      bytes.push(match.gifts.length);
+      match.gifts.forEach(function (g) { pushLabel(bytes, g); });
+    }
     bytes.push(checksum(bytes));
     return CODE_PREFIX + b64Encode(bytes);
   }
@@ -135,8 +153,16 @@
     if (bytes.length < 8) throw new Error('That code is too short. Make sure you copied all of it.');
     var sum = bytes.pop();
     if (checksum(bytes) !== sum) throw new Error('That code is damaged or incomplete. Copy it again from the results screen.');
-    if (bytes[0] !== CODE_VERSION) throw new Error('That code comes from a different version of DM2.');
+    var mode = bytes[0] === 1 ? 'decide' : bytes[0] === 2 ? 'share' : null;
+    if (!mode) throw new Error('That code comes from a newer version of DM2.');
     var p = 1;
+    function label() {
+      var len = bytes[p++];
+      if (len === undefined || p + len > bytes.length) throw new Error('That code is incomplete.');
+      var text = utf8Decode(bytes.slice(p, p + len));
+      p += len;
+      return text;
+    }
     var seed = ((bytes[p] << 24) | (bytes[p + 1] << 16) | (bytes[p + 2] << 8) | bytes[p + 3]) >>> 0; p += 4;
     var qLen = bytes[p++];
     var question = utf8Decode(bytes.slice(p, p + qLen)); p += qLen;
@@ -144,14 +170,26 @@
     if (n < 2 || n > MAX_OPTIONS) throw new Error('That code has an impossible number of contenders.');
     var options = [];
     for (var i = 0; i < n; i++) {
-      var f = bytes[p++], len = bytes[p++];
-      if (f === undefined || len === undefined || p + len > bytes.length) throw new Error('That code is incomplete.');
+      var f = bytes[p++];
+      if (f === undefined) throw new Error('That code is incomplete.');
       if (fighterCount && f >= fighterCount) throw new Error('That code uses a fighter this version of DM2 does not have.');
-      options.push({ fighter: f, label: utf8Decode(bytes.slice(p, p + len)) });
-      p += len;
+      options.push({ fighter: f, label: label() });
+    }
+    var match = { mode: mode, seed: seed, question: question, options: options };
+    if (mode === 'share') {
+      var g = bytes[p++];
+      if (!g || g > MAX_GIFTS) throw new Error('That code has an impossible number of gifts.');
+      match.gifts = [];
+      for (var j = 0; j < g; j++) match.gifts.push(label());
     }
     if (p !== bytes.length) throw new Error('That code has extra data on the end.');
-    return { seed: seed, question: question, options: options };
+    return match;
+  }
+
+  function nextStage(rng, lastStage) { // never the same arena twice in a row
+    if (lastStage < 0) return rng.int(STAGE_COUNT);
+    var stage = rng.int(STAGE_COUNT - 1);
+    return stage >= lastStage ? stage + 1 : stage;
   }
 
   /* ---------- the tournament ----------
@@ -160,6 +198,7 @@
      option exactly a 1/n chance of being the last one standing, whatever its
      position in the queue. The fight script is then written to reach that result. */
   function simulate(match) {
+    if (match.mode === 'share') return simulateShare(match);
     var rng = makeRng(match.seed);
     var n = match.options.length;
 
@@ -176,9 +215,7 @@
     for (var r = 1; r < n; r++) {
       var challenger = order[r];
       var challengerWins = rng.int(r + 1) === 0;
-      var stage;
-      if (lastStage < 0) stage = rng.int(STAGE_COUNT);
-      else { stage = rng.int(STAGE_COUNT - 1); if (stage >= lastStage) stage++; } // never the same arena twice in a row
+      var stage = nextStage(rng, lastStage);
       lastStage = stage;
       var winnerSide = challengerWins ? 1 : 0;
       fights.push({
@@ -192,7 +229,51 @@
       });
       champion = challengerWins ? challenger : champion;
     }
-    return { order: order, fights: fights, winner: champion };
+    return { mode: 'decide', order: order, fights: fights, winner: champion };
+  }
+
+  /* ---------- who gets what: prize fights ----------
+     Gifts are fought for in the order they were listed. For each gift, two people
+     who are still waiting are drawn at random and fight; the winner takes the gift
+     and stops waiting. Drawing a uniform random pair and then a 50/50 fight gives
+     every waiting person exactly a 1/k chance at the gift. When one person is left
+     they take the gift on a walkover. Once everyone has a gift, everyone waits
+     again, so gifts are shared out as evenly as possible. */
+  function simulateShare(match) {
+    var rng = makeRng(match.seed);
+    var n = match.options.length;
+    var all = [];
+    for (var i = 0; i < n; i++) all.push(i);
+    var waiting = all.slice();
+    var rounds = [];
+    var lastStage = -1;
+    var lap = 0;
+    match.gifts.forEach(function (gift, g) {
+      if (!waiting.length) { waiting = all.slice(); lap++; }
+      var stage = nextStage(rng, lastStage);
+      lastStage = stage;
+      var round = { round: g + 1, gift: g, lap: lap, stage: stage };
+      if (waiting.length === 1) {
+        round.walkover = true;
+        round.winner = waiting[0];
+        round.sides = [waiting[0]];
+      } else {
+        var a = waiting[rng.int(waiting.length)];
+        var rest = waiting.filter(function (x) { return x !== a; });
+        var b = rest[rng.int(rest.length)];
+        var winnerSide = rng.int(2);
+        round.sides = [a, b];
+        round.winnerSide = winnerSide;
+        round.winner = winnerSide ? b : a;
+        round.loser = winnerSide ? a : b;
+        round.actions = scriptFight(rng, winnerSide);
+      }
+      waiting = waiting.filter(function (x) { return x !== round.winner; });
+      rounds.push(round);
+    });
+    var awards = all.map(function () { return []; });
+    rounds.forEach(function (r) { awards[r.winner].push(r.gift); });
+    return { mode: 'share', rounds: rounds, awards: awards };
   }
 
   /* A fight is a list of actions: {by: side, type, dmg, hp: [left, right] after}.
@@ -243,7 +324,7 @@
   }
 
   var api = {
-    CODE_VERSION: CODE_VERSION, MAX_OPTIONS: MAX_OPTIONS, MAX_LABEL: MAX_LABEL,
+    CODE_VERSION: CODE_VERSION, MAX_OPTIONS: MAX_OPTIONS, MAX_GIFTS: MAX_GIFTS, MAX_LABEL: MAX_LABEL,
     MAX_QUESTION: MAX_QUESTION, MAX_HP: MAX_HP, STAGE_COUNT: STAGE_COUNT,
     makeRng: makeRng, encodeMatch: encodeMatch, decodeMatch: decodeMatch,
     normalizeCode: normalizeCode, simulate: simulate, randomSeed: randomSeed, clip: clip
