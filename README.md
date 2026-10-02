@@ -42,7 +42,9 @@ In **Pick a winner**, winner-stays-on would normally favour late entrants. DM2 d
 
 ## The fighters
 
-Twenty parody legends drawn as 24x32 pixel art in `js/sprites.js`: The Lych Kinge, Skullator, Leo-Oh, He-Manly, Mumm-Rah, Super Mardio, King Browser, Sonik the Hedgefox, Pak-Muncher, Lenk of Hyrool, Mega Dude, Optimal Prime, The Shreddor, Leonardough, Ryo, Scorpyon, Samos Arran, Dinky Kongo, Kobra Kommander and Dr. Robutnik. They are affectionate parodies with altered names. They are not official characters and DM2 has no connection to any rights holder.
+Twenty-seven parody legends drawn as 24x32 pixel art in `js/sprites.js`: The Lych Kinge, Skullator, Leo-Oh, He-Manly, Mumm-Rah, Ganondork, King Browser, Sonik the Hedgefox, Pak-Muncher, Lenk of Hyrool, Mega Dude, Optimal Prime, The Shreddor, Leonardough, Ryo, Scorpyon, Samos Arran, Dinky Kongo, Kobra Kommander, Dr. Robutnik, Septiroth, Megatrom, Clara Loft, Mister Chief, Malfurious Stormcage, Solid Snack and Sorta. They are affectionate parodies with altered names. They are not official characters and DM2 has no connection to any rights holder.
+
+Codes store each fighter by its position in `js/roster.js`. To retire a fighter, give its slot to a new one rather than deleting it: old codes keep the same fights and winner and simply show the new fighter. (Slot 5 was retired this way and now holds Ganondork.)
 
 ## Project layout
 

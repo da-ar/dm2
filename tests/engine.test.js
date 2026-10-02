@@ -91,13 +91,14 @@ test('labels are clipped to the limits without splitting emoji', () => {
 });
 
 test('a full 20-fighter code stays a reasonable length', () => {
-  const opts = FIGHTERS.map((f, i) => ({ fighter: i, label: 'Option number ' + i }));
+  const opts = FIGHTERS.slice(0, E.MAX_OPTIONS).map((f, i) => ({ fighter: i, label: 'Option number ' + i }));
   const code = E.encodeMatch({ seed: 42, question: 'What should we do this weekend?', options: opts });
   assert.ok(code.length < 600, code.length);
 });
 
 test('every roster fighter has a valid sprite', () => {
-  assert.strictEqual(FIGHTERS.length, 20);
+  assert.strictEqual(FIGHTERS.length, 27);
+  assert.strictEqual(new Set(FIGHTERS.map(f => f.id)).size, FIGHTERS.length, 'ids are unique');
   FIGHTERS.forEach(f => {
     const sp = S.SPRITES[f.id];
     assert.ok(sp, f.id);
@@ -165,4 +166,11 @@ test('every person has an equal chance at every gift', () => {
 test('gift limits are enforced when decoding', () => {
   const tooMany = { ...shareSample, gifts: Array.from({ length: 21 }, (_, i) => 'g' + i) };
   assert.throws(() => E.decodeMatch(E.encodeMatch(tooMany)), /gifts/);
+});
+
+test('the newest fighters can be used and replayed from a code', () => {
+  const opts = FIGHTERS.slice(-8).map((f, i) => ({ fighter: FIGHTERS.length - 8 + i, label: f.name }));
+  const m = { mode: 'decide', seed: 7, question: 'Roster check', options: opts };
+  assert.deepStrictEqual(E.decodeMatch(E.encodeMatch(m), FIGHTERS.length), m);
+  assert.throws(() => E.decodeMatch(E.encodeMatch(m), 20), /fighter this version/);
 });
