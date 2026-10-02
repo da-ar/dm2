@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DM2 Death Match Decision Maker</title>
+<meta name="description" content="Can't decide? Let your options fight to the death. Winner stays on, last one standing is the decision.">
+<meta name="theme-color" content="#0d0820">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<!--BUILD:BODY-->
+<div class="crt" aria-hidden="true"></div>
+
+<header class="topbar">
+  <button class="brand" id="brand" type="button" aria-label="Back to the title screen">DM<span>2</span></button>
+  <div class="toggles">
+    <button class="toggle" id="toggle-sound" type="button" aria-pressed="true"><span class="ico" aria-hidden="true"></span><span class="lbl">SFX</span></button>
+    <button class="toggle" id="toggle-music" type="button" aria-pressed="true"><span class="ico" aria-hidden="true"></span><span class="lbl">MUSIC</span></button>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- TITLE -->
+  <section class="screen" id="screen-title" data-screen="title">
+    <h1 class="logo">
+      <span class="logo-big" data-text="DM2">DM2</span>
+      <span class="logo-sub">Death Match Decision Maker</span>
+    </h1>
+    <div class="stage-frame" id="title-frame"></div>
+    <p class="tagline">Can't decide? Give every option a fighter. Winner stays on. The last one standing is your decision.</p>
+    <div class="actions">
+      <button class="btn btn-hot btn-big" id="btn-new" type="button">New death match</button>
+      <button class="btn" id="btn-have-code" type="button">I have a code</button>
+    </div>
+    <ol class="how">
+      <li><b>Enter your options</b> and pick a fighter for each, or let fate assign them.</li>
+      <li><b>Watch them brawl.</b> Two fight at a time and the winner stays on.</li>
+      <li><b>Share the code.</b> Anyone can replay the same fights and the same result.</li>
+    </ol>
+  </section>
+
+  <!-- SETUP -->
+  <section class="screen" id="screen-setup" data-screen="setup" hidden>
+    <h2 class="screen-title">Choose your contenders</h2>
+    <div class="panel">
+      <label class="field-label" for="question">What are we deciding? <span class="opt">(optional)</span></label>
+      <input class="field" id="question" type="text" maxlength="60" placeholder="Where should we eat tonight?" autocomplete="off">
+    </div>
+    <div class="panel">
+      <div class="list-head">
+        <span class="field-label">Contenders</span>
+        <span class="count" id="count">0 / 20</span>
+      </div>
+      <p class="hint" id="example-note">These are example options. Type over them or <button class="linkbtn" id="btn-clear" type="button">clear them all</button>.</p>
+      <ol class="contenders" id="contenders"></ol>
+      <div class="row-actions">
+        <button class="btn btn-small" id="btn-add" type="button">+ Add contender</button>
+        <button class="btn btn-small" id="btn-shuffle" type="button">Shuffle fighters</button>
+      </div>
+      <p class="hint">Tap a fighter to choose who represents that option.</p>
+    </div>
+    <p class="error" id="setup-error" role="alert" hidden></p>
+    <div class="actions">
+      <button class="btn btn-hot btn-big" id="btn-fight" type="button">Fight!</button>
+    </div>
+  </section>
+
+  <!-- CODE ENTRY -->
+  <section class="screen" id="screen-code" data-screen="code" hidden>
+    <h2 class="screen-title">Replay a death match</h2>
+    <div class="panel">
+      <label class="field-label" for="code-input">Match code</label>
+      <textarea class="field code-field" id="code-input" rows="3" placeholder="DM2-AQ..." spellcheck="false" autocomplete="off"></textarea>
+      <p class="hint">Paste a code from someone's results screen. A full share link works too.</p>
+      <p class="error" id="code-error" role="alert" hidden></p>
+      <div class="actions left">
+        <button class="btn" id="btn-load-code" type="button">Load code</button>
+      </div>
+    </div>
+    <div class="panel" id="code-preview" hidden>
+      <span class="field-label">The question</span>
+      <p class="preview-q" id="preview-q"></p>
+      <span class="field-label">Contenders</span>
+      <ul class="preview-list" id="preview-list"></ul>
+      <div class="actions">
+        <button class="btn btn-hot btn-big" id="btn-watch-code" type="button">Watch the fights</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FIGHT -->
+  <section class="screen" id="screen-fight" data-screen="fight" hidden>
+    <p class="fight-q" id="fight-q"></p>
+    <div class="hud">
+      <div class="hud-side" id="hud-0">
+        <canvas class="hud-face" width="40" height="32"></canvas>
+        <div class="hud-info">
+          <span class="hud-label"></span>
+          <span class="hud-char"></span>
+          <div class="hp"><div class="hp-ghost"></div><div class="hp-fill"></div></div>
+        </div>
+      </div>
+      <div class="hud-mid"><span id="hud-round">R1</span><span class="vs">VS</span></div>
+      <div class="hud-side right" id="hud-1">
+        <canvas class="hud-face" width="40" height="32"></canvas>
+        <div class="hud-info">
+          <span class="hud-label"></span>
+          <span class="hud-char"></span>
+          <div class="hp"><div class="hp-ghost"></div><div class="hp-fill"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="stage-frame" id="fight-frame">
+      <div class="banner" id="banner" aria-live="assertive"></div>
+      <span class="stage-name" id="stage-name"></span>
+    </div>
+    <p class="commentary" id="commentary" aria-live="polite">&nbsp;</p>
+    <div class="controls">
+      <div class="speed" role="group" aria-label="Playback speed">
+        <button class="chip-btn" data-speed="1" type="button" aria-pressed="true">1x</button>
+        <button class="chip-btn" data-speed="2" type="button" aria-pressed="false">2x</button>
+        <button class="chip-btn" data-speed="4" type="button" aria-pressed="false">4x</button>
+      </div>
+      <button class="btn btn-small" id="btn-skip" type="button">Skip to result</button>
+    </div>
+    <div class="queue-wrap">
+      <span class="field-label">Fight order</span>
+      <ol class="queue" id="queue"></ol>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <section class="screen" id="screen-result" data-screen="result" hidden>
+    <div class="result-hero">
+      <p class="result-question" id="result-q"></p>
+      <p class="eyebrow">The decision is</p>
+      <div class="winner-stage">
+        <div class="rays" aria-hidden="true"></div>
+        <canvas id="winner-canvas" width="96" height="128"></canvas>
+      </div>
+      <p class="winner-label" id="winner-label"></p>
+      <p class="winner-sub" id="winner-sub"></p>
+    </div>
+    <div class="panel code-panel">
+      <span class="field-label">Your match code</span>
+      <p class="hint">Anyone who enters this code sees the same contenders, the same fights and the same winner.</p>
+      <output class="code-box" id="code-box"></output>
+      <div class="actions left">
+        <button class="btn btn-hot" id="btn-copy-code" type="button">Copy code</button>
+        <button class="btn" id="btn-copy-link" type="button">Copy share link</button>
+      </div>
+      <p class="toast" id="copy-toast" role="status"></p>
+    </div>
+    <div class="actions">
+      <button class="btn" id="btn-replay" type="button">Watch replay</button>
+      <button class="btn" id="btn-rematch" type="button">Rematch</button>
+      <button class="btn" id="btn-edit" type="button">Edit contenders</button>
+    </div>
+    <div class="panel">
+      <span class="field-label">Fight log</span>
+      <ol class="log" id="fight-log"></ol>
+    </div>
+  </section>
+</main>
+
+<!-- FIGHTER PICKER -->
+<div class="modal" id="picker" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="picker-title">
+    <div class="modal-head">
+      <h2 id="picker-title">Choose a fighter</h2>
+      <button class="btn btn-small" id="picker-close" type="button">Close</button>
+    </div>
+    <p class="hint" id="picker-for"></p>
+    <div class="picker-grid" id="picker-grid"></div>
+  </div>
+</div>
+<!--/BUILD:BODY-->
+
+<script src="js/sprites.js"></script>
+<script src="js/roster.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/arena.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
