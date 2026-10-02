@@ -492,7 +492,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     <div class="panel">
       <label class="field-label" for="code-input">Match code</label>
       <textarea class="field code-field" id="code-input" rows="3" placeholder="DM2-AQ..." spellcheck="false" autocomplete="off"></textarea>
-      <p class="hint">Paste a code from someone's results screen. A full share link works too.</p>
+      <p class="hint">Paste the code from someone's results screen. If they sent you a DM2 share link, you can paste that here too, or just open it.</p>
       <p class="error" id="code-error" role="alert" hidden></p>
       <div class="actions left">
         <button class="btn" id="btn-load-code" type="button">Load code</button>
@@ -584,6 +584,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
       <div class="actions left">
         <button class="btn btn-hot" id="btn-copy-code" type="button">Copy code</button>
         <button class="btn" id="btn-copy-link" type="button">Copy share link</button>
+        <button class="btn" id="btn-native-share" type="button" hidden>Share</button>
       </div>
       <p class="toast" id="copy-toast" role="status"></p>
     </div>
@@ -3040,6 +3041,8 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
       }, 7000);
     }
     if (name === 'fight') $('fight-frame').insertBefore(canvas, $('fight-frame').firstChild);
+    if (name === 'fight' || name === 'result') setAddressCode(state.code);
+    else if (name === 'title' || name === 'setup') setAddressCode('');
     window.scrollTo(0, 0);
   }
 
@@ -3500,7 +3503,8 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     show('result');
     $('code-box').textContent = state.code;
     $('copy-toast').textContent = '';
-    $('btn-copy-link').hidden = !shareLinkAvailable();
+    $('btn-copy-link').hidden = !shareLink();
+    $('btn-native-share').hidden = !(navigator.share && isTopLevel());
     var share = m.mode === 'share';
     $('code-hint').textContent = share
       ? 'Anyone who enters this code sees the same people, the same gifts, the same fights and the same result.'
@@ -3589,8 +3593,33 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     audio.play('victory');
   }
 
-  function shareLinkAvailable() {
-    try { return window.top === window.self && /^https?:$/.test(location.protocol); } catch (e) { return false; }
+  /* ---------- share links ----------
+     A link is the game's address plus #DM2-code. When the page runs inside another site's frame
+     (a claude.ai artifact, for example) it can't see the address people actually use, so a build
+     can bake it in as window.DM2_SHARE_BASE. A local file has no shareable address at all. */
+  function isTopLevel() { try { return window.top === window.self; } catch (e) { return false; } }
+  function shareBase() {
+    if (window.DM2_SHARE_BASE) return String(window.DM2_SHARE_BASE).split('#')[0];
+    if (isTopLevel() && /^https?:$/.test(location.protocol)) return location.origin + location.pathname + location.search;
+    return '';
+  }
+  function shareLink() { var base = shareBase(); return base && state.code ? base + '#' + state.code : ''; }
+  // keep the code in the address bar on the fight and results screens, so the browser's own share button works
+  function setAddressCode(code) {
+    if (!isTopLevel()) return;
+    try { history.replaceState(null, '', location.pathname + location.search + (code ? '#' + code : '')); } catch (e) { /* ignore */ }
+  }
+
+  function nativeShare() {
+    var m = state.match, link = shareLink();
+    var text = (m.question ? m.question + ' ' : '') +
+      (m.mode === 'share' ? 'Watch the DM2 Prize Fights decide who gets what.' : 'Watch the DM2 death match decide it.') +
+      (link ? '' : ' Enter this code in DM2: ' + state.code);
+    var data = { title: 'DM2 Death Match Decision Maker', text: text };
+    if (link) data.url = link;
+    navigator.share(data).catch(function (e) {
+      if (e && e.name !== 'AbortError') copyText(link || state.code, link ? 'Link copied instead.' : 'Code copied instead.');
+    });
   }
 
   function copyText(text, okMsg) {
@@ -3727,7 +3756,8 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
   });
 
   on('btn-copy-code', function () { copyText(state.code, 'Code copied. Send it to anyone with DM2.'); });
-  on('btn-copy-link', function () { copyText(location.origin + location.pathname + '#' + state.code, 'Link copied. Opening it replays this death match.'); });
+  on('btn-copy-link', function () { copyText(shareLink(), 'Link copied. Opening it replays this death match.'); });
+  on('btn-native-share', function () { audio.play('select'); nativeShare(); });
   on('btn-replay', function () { audio.play('select'); play(state.match); });
   on('btn-rematch', function () {
     audio.play('select');

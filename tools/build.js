@@ -1,6 +1,8 @@
 /* Bundles the game into one self-contained HTML file: dist/dm2.html.
-   Usage: node tools/build.js [--body-only out.html]
-   --body-only writes the page without the <html>/<head>/<body> wrapper (for hosts that add their own). */
+   Usage: node tools/build.js [--body-only out.html] [--share-base URL]
+   --body-only   writes the page without the <html>/<head>/<body> wrapper (for hosts that add their own).
+   --share-base  the public address share links should use, for hosts that show the game inside a frame
+                 (the page can't see that address itself). Links become URL#DM2-code. */
 const fs = require('fs');
 const path = require('path');
 
@@ -14,7 +16,11 @@ const js = scripts.map((s) => `/* ${s} */\n` + read(s)).join('\n');
 const body = html.split('<!--BUILD:BODY-->')[1].split('<!--/BUILD:BODY-->')[0].trim();
 const title = html.match(/<title>[^<]*<\/title>/)[0];
 const fonts = html.match(/<link rel="stylesheet" href="https:\/\/fonts[^>]+>/)[0];
-const safeJs = js.replace(/<\/script/gi, '<\\/script');
+const args = process.argv.slice(2);
+const baseAt = args.indexOf('--share-base');
+const shareBase = baseAt >= 0 ? args[baseAt + 1] : '';
+const config = shareBase ? `window.DM2_SHARE_BASE = ${JSON.stringify(shareBase)};\n` : '';
+const safeJs = (config + js).replace(/<\/script/gi, '<\\/script');
 
 const inner = `${title}
 ${fonts}
@@ -27,10 +33,10 @@ ${safeJs}
 </script>
 `;
 
-const args = process.argv.slice(2);
-if (args[0] === '--body-only') {
-  fs.writeFileSync(args[1], inner);
-  console.log('wrote', args[1]);
+const bodyAt = args.indexOf('--body-only');
+if (bodyAt >= 0) {
+  fs.writeFileSync(args[bodyAt + 1], inner);
+  console.log('wrote', args[bodyAt + 1], shareBase ? '(share links: ' + shareBase + ')' : '');
 } else {
   const full = `<!doctype html>
 <html lang="en">
