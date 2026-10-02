@@ -420,6 +420,7 @@
 
   Arena.STAGES = STAGES;
   Arena.drawPortrait = drawPortrait;
+  Arena.drawText = drawText;
 
   Arena.prototype.start = function () {
     if (this.running) return;
