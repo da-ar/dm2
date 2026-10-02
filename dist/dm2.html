@@ -2655,6 +2655,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
 
   Arena.STAGES = STAGES;
   Arena.drawPortrait = drawPortrait;
+  Arena.drawText = drawText;
 
   Arena.prototype.start = function () {
     if (this.running) return;
@@ -3884,15 +3885,22 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
     try { history.replaceState(null, '', location.pathname + location.search + (code ? '#' + code : '')); } catch (e) { /* ignore */ }
   }
 
+  /* Chat apps build link previews without running the game, and never see the #code,
+     so the question travels in the message text instead. The winner is never spoiled. */
+  function shareMessage() {
+    var m = state.match;
+    var lead = m.question ? '\u201c' + m.question + '\u201d\n' : '';
+    if (m.mode === 'share') return lead + 'Watch the DM2 Prize Fights decide who gets what \u2694\ufe0f';
+    return lead + (m.question ? 'Watch the DM2 death match decide it \u2694\ufe0f' : 'Watch this DM2 death match \u2694\ufe0f');
+  }
+
   function nativeShare() {
-    var m = state.match, link = shareLink();
-    var text = (m.question ? m.question + ' ' : '') +
-      (m.mode === 'share' ? 'Watch the DM2 Prize Fights decide who gets what.' : 'Watch the DM2 death match decide it.') +
-      (link ? '' : ' Enter this code in DM2: ' + state.code);
+    var link = shareLink();
+    var text = shareMessage() + (link ? '' : '\nEnter this code in DM2: ' + state.code);
     var data = { title: 'DM2 Death Match Decision Maker', text: text };
     if (link) data.url = link;
     navigator.share(data).catch(function (e) {
-      if (e && e.name !== 'AbortError') copyText(link || state.code, link ? 'Link copied instead.' : 'Code copied instead.');
+      if (e && e.name !== 'AbortError') copyText(link ? shareMessage() + '\n' + link : state.code, link ? 'Message and link copied instead.' : 'Code copied instead.');
     });
   }
 
@@ -4030,7 +4038,9 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
   });
 
   on('btn-copy-code', function () { copyText(state.code, 'Code copied. Send it to anyone with DM2.'); });
-  on('btn-copy-link', function () { copyText(shareLink(), 'Link copied. Opening it replays this death match.'); });
+  on('btn-copy-link', function () {
+    copyText(shareMessage() + '\n' + shareLink(), 'Copied the question and link. Paste it into any chat; opening the link replays this match.');
+  });
   on('btn-native-share', function () { audio.play('select'); nativeShare(); });
   on('btn-replay', function () { audio.play('select'); play(state.match); });
   on('btn-rematch', function () {

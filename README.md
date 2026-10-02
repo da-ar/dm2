@@ -22,6 +22,10 @@ DM2 is a static web game with no build step, no server and no dependencies. It r
 
 On a hosted copy (GitHub Pages or any web server) the fight and results screens put the code in the address bar, so the browser's own share button works. The results screen also has **Copy share link** and, on devices that support it, a **Share** button. A local `dm2.html` file has no address other people can open, so it offers the code only.
 
+Chat apps build link previews without running the game and never see the `#DM2-...` part of a link, so every DM2 link gets the same preview card (`og-image.png` plus the title and description in `index.html`). To show what the match is about, **Copy share link** and **Share** send the question as the message text, followed by the link. They never reveal the winner.
+
+The preview image's address in `index.html` is absolute (`https://da-ar.github.io/dm2/og-image.png`). Change it if you host DM2 somewhere else. Regenerate the image after changing the roster or stages with `node tools/og-image.js` (needs Playwright).
+
 If the game is shown inside another site's frame, it can't see the address people actually use. Build it with that address baked in: `node tools/build.js --share-base https://example.com/dm2/`.
 
 ### Prize Fights
@@ -58,6 +62,7 @@ Codes store each fighter by its position in `js/roster.js`. To retire a fighter,
 | `js/audio.js` | Synthesised chiptune sound effects and battle music (WebAudio) |
 | `js/app.js` | Screens, setup, playback and results |
 | `tools/build.js` | Bundles everything into `dist/dm2.html` |
+| `tools/og-image.js` | Renders `og-image.png`, the link-preview picture |
 
 ## Develop
 
